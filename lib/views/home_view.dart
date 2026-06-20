@@ -128,15 +128,14 @@ class _HomeViewState extends State<HomeView> {
                       ),
 
                     // Botão de opções (três pontos verticais)
-                    IconButton(
+                    // Usa PopupMenuButton que gerencia a posição automaticamente
+                    PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
-                      onPressed: () {
-                        // Abre um menu de contexto com as opções disponíveis
-                        // O menu muda baseado na aba selecionada
-                        _showContextMenu(
-                            context, viewModel, nota, _selectedTabIndex);
-                      },
                       tooltip: 'Mais opções',
+                      // itemBuilder: constrói o menu baseado na aba selecionada
+                      itemBuilder: (BuildContext context) {
+                        return _buildContextMenuItems(viewModel, nota, _selectedTabIndex);
+                      },
                     ),
                   ],
                 ),
@@ -202,26 +201,27 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  /// _showContextMenu: exibe o menu de contexto (três pontos)
+  /// _buildContextMenuItems: constrói a lista de opções do menu
   ///
-  /// O menu muda baseado na aba selecionada:
+  /// Retorna diferentes opções baseado na aba selecionada:
   /// - Aba "Anotações": Arquivar, Enviar para lixeira
   /// - Aba "Arquivo": Desarquivar, Enviar para lixeira
   /// - Aba "Lixeira": Excluir definitivamente
   ///
+  /// É chamado pelo PopupMenuButton, que gerencia a posição automaticamente
+  ///
   /// Recebe:
-  /// - context: contexto do Flutter (necessário para exibir o menu)
   /// - viewModel: referência ao ViewModel para chamar as ações
   /// - nota: a nota sobre a qual o menu foi aberto
   /// - tabIndex: qual aba está ativa (0 = Anotações, 1 = Arquivo, 2 = Lixeira)
-  void _showContextMenu(BuildContext context, NotaViewModel viewModel,
-      Nota nota, int tabIndex) {
-    // Cria a lista de opções do menu baseado na aba
-    List<PopupMenuEntry<String>> menuItems = [];
-
+  ///
+  /// Retorna:
+  /// - Lista de PopupMenuEntry com as opções
+  List<PopupMenuEntry<String>> _buildContextMenuItems(
+      NotaViewModel viewModel, Nota nota, int tabIndex) {
     if (tabIndex == 0) {
       // Aba "Anotações": notas comuns
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Arquivar
         PopupMenuItem(
           onTap: () {
@@ -246,7 +246,7 @@ class _HomeViewState extends State<HomeView> {
       ];
     } else if (tabIndex == 1) {
       // Aba "Arquivo": notas arquivadas
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Desarquivar
         PopupMenuItem(
           onTap: () {
@@ -271,7 +271,7 @@ class _HomeViewState extends State<HomeView> {
       ];
     } else {
       // Aba "Lixeira": notas apagadas
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Excluir definitivamente (em vermelho)
         PopupMenuItem(
           onTap: () {
@@ -285,15 +285,5 @@ class _HomeViewState extends State<HomeView> {
         ),
       ];
     }
-
-    // showMenu: função do Flutter que exibe um menu popup
-    showMenu<String>(
-      // context: contexto do Flutter
-      context: context,
-      // position: onde o menu deve aparecer
-      position: RelativeRect.fromLTRB(100, 100, 0, 0),
-      // items: lista de opções do menu (variável baseado na aba)
-      items: menuItems,
-    );
   }
 }

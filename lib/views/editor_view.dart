@@ -170,29 +170,102 @@ class _EditorViewState extends State<EditorView> {
     }
   }
 
-  /// _showContextMenu: exibe o menu de contexto (três pontos)
+  /// _showInfoBottomSheet: exibe uma bandeja na base da tela com informações da nota
   ///
-  /// O menu muda baseado no estado da nota:
-  /// - Se nota é comum: Arquivar, Enviar para lixeira
-  /// - Se nota é arquivada: Desarquivar, Enviar para lixeira
-  /// - Se nota está apagada: Excluir definitivamente, Restaurar
+  /// Mostra:
+  /// - Data de criação (formatada como DD-MM-AAAA)
   ///
-  /// Similar ao menu da HomeView, integrado na EditorView
-  void _showContextMenu(BuildContext context) {
+  /// Fluxo:
+  /// 1. Recupera a nota sendo editada
+  /// 2. Se for null (criando), não mostra nada
+  /// 3. Se tiver nota, exibe um BottomSheet com os dados formatados
+  void _showInfoBottomSheet(BuildContext context) {
     // Recupera a nota que está sendo editada
     final notaEmEdicao = _viewModel.notaEmEdicao;
 
-    // Se não está editando (criando), não mostra o menu (não há nota para arquivar/apagar)
+    // Se não há nota (criando), não mostra a bandeja
     if (notaEmEdicao == null) {
       return;
     }
 
-    // Cria a lista de opções baseado no estado da nota
-    List<PopupMenuEntry<String>> menuItems = [];
+    // Formata a data de criação no padrão DD-MM-AAAA
+    final dataFormatada =
+        '${notaEmEdicao.criadaEm.day.toString().padLeft(2, '0')}-${notaEmEdicao.criadaEm.month.toString().padLeft(2, '0')}-${notaEmEdicao.criadaEm.year}';
+
+    // Exibe a bandeja na base da tela
+    showModalBottomSheet(
+      context: context,
+      // builder: constrói o conteúdo da bandeja
+      builder: (BuildContext context) {
+        return Padding(
+          // Padding: espaçamento ao redor do conteúdo
+          padding: const EdgeInsets.all(16),
+          // Column: empilha widgets verticalmente
+          child: Column(
+            // mainAxisSize: deixar a coluna compacta (ocupar só o espaço necessário)
+            mainAxisSize: MainAxisSize.min,
+            // crossAxisAlignment: alinhar à esquerda
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título da bandeja de informações
+              const Text(
+                'Informações da nota',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // Espaçamento
+              const SizedBox(height: 16),
+              // Data de criação
+              Text(
+                'Criada em: $dataFormatada',
+                style: const TextStyle(fontSize: 16),
+              ),
+              // Espaçamento
+              const SizedBox(height: 16),
+              // Botão para fechar a bandeja
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Fecha a bandeja
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Fechar'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// _buildContextMenuItems: constrói a lista de opções do menu
+  ///
+  /// O menu muda baseado no estado da nota:
+  /// - Se nota é comum: Arquivar, Enviar para lixeira
+  /// - Se nota é arquivada: Desarquivar, Enviar para lixeira
+  /// - Se nota está apagada: Restaurar, Excluir definitivamente
+  ///
+  /// É chamado pelo PopupMenuButton, que gerencia a posição automaticamente
+  /// Se não há nota sendo editada (criando), retorna lista vazia
+  ///
+  /// Retorna:
+  /// - Lista de PopupMenuEntry com as opções baseado no estado da nota
+  List<PopupMenuEntry<String>> _buildContextMenuItems() {
+    // Recupera a nota que está sendo editada
+    final notaEmEdicao = _viewModel.notaEmEdicao;
+
+    // Se não está editando (criando), retorna lista vazia (sem menu)
+    if (notaEmEdicao == null) {
+      return [];
+    }
 
     if (notaEmEdicao.isApagada) {
       // Nota está na lixeira: opções para restaurar ou excluir definitivamente
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Restaurar
         PopupMenuItem(
           onTap: () {
@@ -222,7 +295,7 @@ class _EditorViewState extends State<EditorView> {
       ];
     } else if (notaEmEdicao.isArquivada) {
       // Nota é arquivada: opções para desarquivar ou enviar para lixeira
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Desarquivar
         PopupMenuItem(
           onTap: () {
@@ -251,7 +324,7 @@ class _EditorViewState extends State<EditorView> {
       ];
     } else {
       // Nota é comum (não arquivada, não apagada): opções para arquivar ou enviar para lixeira
-      menuItems = <PopupMenuEntry<String>>[
+      return <PopupMenuEntry<String>>[
         // Opção: Arquivar
         PopupMenuItem(
           onTap: () {
@@ -279,13 +352,6 @@ class _EditorViewState extends State<EditorView> {
         ),
       ];
     }
-
-    // Exibe o menu popup com as opções variáveis
-    showMenu<String>(
-      context: context,
-      position: RelativeRect.fromLTRB(100, 100, 0, 0),
-      items: menuItems,
-    );
   }
 
   /// dispose: chamado quando o widget é destruído
@@ -311,134 +377,144 @@ class _EditorViewState extends State<EditorView> {
 
   @override
   Widget build(BuildContext context) {
-    // Recupera a nota que está sendo editada (ou null se criando)
-    final notaEmEdicao = _viewModel.notaEmEdicao;
+    // Usa Consumer para escutar mudanças no ViewModel
+    // Isso permite que o UI se reconstrua quando isFavorita muda
+    return Consumer<NotaViewModel>(
+      builder: (context, viewModel, _) {
+        // Recupera a nota que está sendo editada (ou null se criando)
+        final notaEmEdicao = viewModel.notaEmEdicao;
 
-    // Determina se está criando (true) ou editando (false)
-    final isCreating = notaEmEdicao == null;
+        // Determina se está criando (true) ou editando (false)
+        final isCreating = notaEmEdicao == null;
 
-    // Define o título do AppBar baseado no modo
-    final title = isCreating ? 'Nova nota' : 'Editar nota';
+        // Define o título do AppBar baseado no modo
+        final title = isCreating ? 'Nova nota' : 'Editar nota';
 
-    // Determina se o botão de favorita está ativo (apenas em modo edição)
-    final isFavorita = notaEmEdicao?.isFavorita ?? false;
+        // Determina se o botão de favorita está ativo (apenas em modo edição)
+        final isFavorita = notaEmEdicao?.isFavorita ?? false;
 
-    // Scaffold: estrutura base da tela (AppBar, body, FAB, etc.)
-    return Scaffold(
-      // AppBar: barra no topo com título e botões de ação
-      appBar: AppBar(
-        // Título do AppBar (muda baseado no modo: "Nova nota" ou "Editar nota")
-        title: Text(title),
+        // Scaffold: estrutura base da tela (AppBar, body, FAB, etc.)
+        return Scaffold(
+          // AppBar: barra no topo com título e botões de ação
+          appBar: AppBar(
+            // Título do AppBar (muda baseado no modo: "Nova nota" ou "Editar nota")
+            title: Text(title),
 
-        // actions: lista de botões no lado direito do AppBar
-        actions: [
-          // Botão de favorita (estrela)
-          // Só funciona em modo edição (quando notaEmEdicao != null)
-          if (!isCreating)
-            IconButton(
-              // Ícone muda baseado em se é favorita ou não
-              icon: Icon(
-                isFavorita ? Icons.star : Icons.star_border,
-              ),
-              // Cor muda baseado em se é favorita ou não
-              color: isFavorita ? Colors.amber : null,
-              // Quando toca, inverte o estado de favorita
-              onPressed: () {
-                _viewModel.toggleFavorita(notaEmEdicao);
-              },
-              tooltip: isFavorita
-                  ? 'Remover de favoritos'
-                  : 'Adicionar aos favoritos',
-            ),
-
-          // Botão de informações (ícone "i")
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              // TODO: Implementar tela de informações
-            },
-            tooltip: 'Informações',
-          ),
-
-          // Botão de opções (três pontos verticais)
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Abre o menu de contexto
-              _showContextMenu(context);
-            },
-            tooltip: 'Mais opções',
-          ),
-
-          // Botão de salvar (check)
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveAndClose,
-            tooltip: 'Salvar e fechar',
-          ),
-        ],
-      ),
-
-      // Body: conteúdo principal (campos de texto)
-      body: Padding(
-        // Padding: espaçamento em torno do conteúdo
-        padding: const EdgeInsets.all(16),
-        // Column: empilha widgets verticalmente
-        child: Column(
-          children: [
-            // Campo de título
-            TextField(
-              // Usa o controller de título
-              controller: _titleController,
-              // Estilos e placeholder
-              decoration: InputDecoration(
-                hintText: 'Título',
-                border: OutlineInputBorder(),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              ),
-              // Estilo do texto (maior e mais bold que o conteúdo)
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            // Espaçamento entre título e conteúdo
-            const SizedBox(height: 16),
-
-            // Campo de conteúdo (expansível para ocupar todo o espaço disponível)
-            Expanded(
-              // Expanded: faz o widget ocupar o espaço restante
-              child: TextField(
-                // Usa o controller de conteúdo
-                controller: _contentController,
-                // Estilos e placeholder
-                decoration: InputDecoration(
-                  hintText: 'Escreva sua nota...',
-                  border: OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.all(12),
+            // actions: lista de botões no lado direito do AppBar
+            actions: [
+              // Botão de favorita (estrela)
+              // Só funciona em modo edição (quando notaEmEdicao != null)
+              if (!isCreating)
+                IconButton(
+                  // Ícone muda baseado em se é favorita ou não
+                  icon: Icon(
+                    isFavorita ? Icons.star : Icons.star_border,
+                  ),
+                  // Cor muda baseado em se é favorita ou não
+                  color: isFavorita ? Colors.amber : null,
+                  // Quando toca, inverte o estado de favorita
+                  onPressed: () async {
+                    // Chama o método do viewModel que inverte o estado
+                    // await garante que a mudança é aplicada antes de continuar
+                    await viewModel.toggleFavorita(notaEmEdicao);
+                  },
+                  tooltip: isFavorita
+                      ? 'Remover de favoritos'
+                      : 'Adicionar aos favoritos',
                 ),
-                // maxLines: null permite múltiplas linhas
-                maxLines: null,
-                // expands: true faz o TextField ocupar todo o espaço do Expanded
-                expands: true,
-                // textAlignVertical: top alinha o texto no topo (não fica centralizado)
-                textAlignVertical: TextAlignVertical.top,
-              ),
-            ),
-          ],
-        ),
-      ),
 
-      // FAB: botão flutuante para salvar (alternativa ao botão no AppBar)
-      floatingActionButton: FloatingActionButton(
-        // Quando toca, salva e fecha
-        onPressed: _saveAndClose,
-        tooltip: 'Salvar',
-        // Ícone de check (checkmark)
-        child: const Icon(Icons.check),
-      ),
+              // Botão de informações (ícone "i")
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                onPressed: () {
+                  // Abre a bandeja de informações
+                  _showInfoBottomSheet(context);
+                },
+                tooltip: 'Informações',
+              ),
+
+              // Botão de opções (três pontos verticais)
+              // Usa PopupMenuButton que gerencia a posição e rebuild automaticamente
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert),
+                tooltip: 'Mais opções',
+                // itemBuilder: constrói o menu baseado no estado da nota
+                itemBuilder: (BuildContext context) {
+                  return _buildContextMenuItems();
+                },
+              ),
+
+              // Botão de salvar (check)
+              IconButton(
+                icon: const Icon(Icons.check),
+                onPressed: _saveAndClose,
+                tooltip: 'Salvar e fechar',
+              ),
+            ],
+          ),
+
+          // Body: conteúdo principal (campos de texto)
+          body: Padding(
+            // Padding: espaçamento em torno do conteúdo
+            padding: const EdgeInsets.all(16),
+            // Column: empilha widgets verticalmente
+            child: Column(
+              children: [
+                // Campo de título
+                TextField(
+                  // Usa o controller de título
+                  controller: _titleController,
+                  // Estilos e placeholder
+                  decoration: InputDecoration(
+                    hintText: 'Título',
+                    border: OutlineInputBorder(),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  ),
+                  // Estilo do texto (maior e mais bold que o conteúdo)
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                // Espaçamento entre título e conteúdo
+                const SizedBox(height: 16),
+
+                // Campo de conteúdo (expansível para ocupar todo o espaço disponível)
+                Expanded(
+                  // Expanded: faz o widget ocupar o espaço restante
+                  child: TextField(
+                    // Usa o controller de conteúdo
+                    controller: _contentController,
+                    // Estilos e placeholder
+                    decoration: InputDecoration(
+                      hintText: 'Escreva sua nota...',
+                      border: OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
+                    // maxLines: null permite múltiplas linhas
+                    maxLines: null,
+                    // expands: true faz o TextField ocupar todo o espaço do Expanded
+                    expands: true,
+                    // textAlignVertical: top alinha o texto no topo (não fica centralizado)
+                    textAlignVertical: TextAlignVertical.top,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // FAB: botão flutuante para salvar (alternativa ao botão no AppBar)
+          floatingActionButton: FloatingActionButton(
+            // Quando toca, salva e fecha
+            onPressed: _saveAndClose,
+            tooltip: 'Salvar',
+            // Ícone de check (checkmark)
+            child: const Icon(Icons.check),
+          ),
+        );
+      },
     );
   }
 }
