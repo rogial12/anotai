@@ -1,6 +1,6 @@
 # Diagrama de Classes — Anotai
 
-Arquitetura MVVM planejada para o MVP.
+Arquitetura MVVM implementada no MVP.
 
 ```mermaid
 classDiagram
@@ -10,24 +10,31 @@ classDiagram
         +String conteudo
         +DateTime criadaEm
         +DateTime atualizadaEm
-        +DateTime? apagadaEm
         +bool isFavorita
         +bool isArquivada
-        +bool estaApagada
+        +bool isApagada
+        +toMap() Map
+        +fromMap() Nota
     }
 
     class NotaViewModel {
         -List _notas
+        -Nota? _notaEmEdicao
         +List notas
         +List favoritas
         +List arquivadas
         +List lixeira
+        +Nota? notaEmEdicao
+        +carregarNotas()
         +criarNota()
         +editarNota()
         +apagarNota()
         +restaurarNota()
+        +deletarPermanentemente()
         +arquivarNota()
-        +favoritar()
+        +desarquivarNota()
+        +toggleFavorita()
+        +setNotaEmEdicao()
     }
 
     class NotaRepository {
@@ -38,17 +45,31 @@ classDiagram
     }
 
     class LocalNotaRepository {
+        -Box _box
         +buscarTodas() List
         +salvar(Nota nota)
         +deletar(String id)
     }
 
     class HomeView {
+        -int _selectedTabIndex
         -NotaViewModel viewModel
+        +build()
+        -_buildContextMenuItems()
     }
 
     class EditorView {
+        -TextEditingController _titleController
+        -TextEditingController _contentController
+        -Timer? _debounceTimer
+        -bool _hasChanges
         -NotaViewModel viewModel
+        +build()
+        -_onTextChanged()
+        -_saveAutomatically()
+        -_saveAndClose()
+        -_showInfoBottomSheet()
+        -_buildContextMenuItems()
     }
 
     NotaViewModel --> NotaRepository : usa
@@ -57,3 +78,21 @@ classDiagram
     EditorView --> NotaViewModel : observa
     NotaViewModel --> Nota : gerencia
 ```
+
+## Mudanças principais (MVP)
+
+### Modelo Nota
+- **Removido:** `DateTime? apagadaEm`
+- **Adicionado:** `bool isApagada` (soft delete com countdown 30 dias)
+- **Estados:** Agora são independentes (`isFavorita`, `isArquivada`, `isApagada`)
+- **Serialização:** `toMap()` e `fromMap()` para persistência Hive
+
+### ViewModel
+- **Novo:** `_notaEmEdicao` — rastreia nota em edição
+- **Novos métodos:** `desarquivarNota()`, `deletarPermanentemente()`, `setNotaEmEdicao()`
+- **Refatorado:** `restaurarNota()` — mantém estado `isArquivada` ao restaurar
+- **Refatorado:** getters filtrados agora usam `isApagada` em lugar de `apagadaEm`
+
+### Views
+- **HomeView:** Menu dinâmico por aba, `PopupMenuButton` para posicionamento correto
+- **EditorView:** Envolvida em `Consumer` para escutar mudanças, botão favorita funcional, bottom sheet de informações
