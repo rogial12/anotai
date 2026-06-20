@@ -49,13 +49,13 @@ class _HomeViewState extends State<HomeView> {
           List<Nota> notasParaExibir;
 
           if (_selectedTabIndex == 0) {
-            // Aba "Anotações": mostra notas ativas (não arquivadas, não deletadas)
+            // Aba "Anotações": mostra notas ativas (não arquivadas, não apagadas)
             notasParaExibir = viewModel.notas;
           } else if (_selectedTabIndex == 1) {
-            // Aba "Arquivo": mostra apenas notas arquivadas
+            // Aba "Arquivo": mostra apenas notas arquivadas (não apagadas)
             notasParaExibir = viewModel.arquivadas;
           } else {
-            // Aba "Lixeira": mostra apenas notas deletadas (apagadas)
+            // Aba "Lixeira": mostra apenas notas apagadas
             notasParaExibir = viewModel.lixeira;
           }
 
@@ -89,7 +89,7 @@ class _HomeViewState extends State<HomeView> {
                 // Subtítulo da nota (vai abaixo do título, em texto menor/desbotado)
                 subtitle: Text(nota.conteudo),
                 // Trailing: widget no final da linha (extremidade direita)
-                // Aqui colocamos o botão de favorita e o menu de opções
+                // Aqui colocamos o botão de favorita, restaurar (se lixeira), e menu de opções
                 trailing: Row(
                   // mainAxisSize: deixar a Row compacta (ocupar só o espaço necessário)
                   mainAxisSize: MainAxisSize.min,
@@ -113,12 +113,28 @@ class _HomeViewState extends State<HomeView> {
                           ? 'Remover de favoritos'
                           : 'Adicionar aos favoritos',
                     ),
+
+                    // Botão de restaurar (apenas na aba Lixeira)
+                    // Aparece só se _selectedTabIndex == 2 (Lixeira)
+                    if (_selectedTabIndex == 2)
+                      IconButton(
+                        icon: const Icon(Icons.restore),
+                        onPressed: () {
+                          // Restaura a nota da lixeira
+                          // Importante: mantém isArquivada, então volta para o lugar certo
+                          viewModel.restaurarNota(nota);
+                        },
+                        tooltip: 'Restaurar',
+                      ),
+
                     // Botão de opções (três pontos verticais)
                     IconButton(
                       icon: const Icon(Icons.more_vert),
                       onPressed: () {
                         // Abre um menu de contexto com as opções disponíveis
-                        _showContextMenu(context, viewModel, nota);
+                        // O menu muda baseado na aba selecionada
+                        _showContextMenu(
+                            context, viewModel, nota, _selectedTabIndex);
                       },
                       tooltip: 'Mais opções',
                     ),
@@ -186,57 +202,98 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  /// Método privado que exibe o menu de contexto (três pontos)
+  /// _showContextMenu: exibe o menu de contexto (três pontos)
   ///
-  /// O menu tem duas opções:
-  /// 1. Arquivar (move a nota para a aba "Arquivo")
-  /// 2. Apagar (move a nota para a "Lixeira")
+  /// O menu muda baseado na aba selecionada:
+  /// - Aba "Anotações": Arquivar, Enviar para lixeira
+  /// - Aba "Arquivo": Desarquivar, Enviar para lixeira
+  /// - Aba "Lixeira": Excluir definitivamente
   ///
   /// Recebe:
   /// - context: contexto do Flutter (necessário para exibir o menu)
   /// - viewModel: referência ao ViewModel para chamar as ações
   /// - nota: a nota sobre a qual o menu foi aberto
-  void _showContextMenu(
-      BuildContext context, NotaViewModel viewModel, Nota nota) {
+  /// - tabIndex: qual aba está ativa (0 = Anotações, 1 = Arquivo, 2 = Lixeira)
+  void _showContextMenu(BuildContext context, NotaViewModel viewModel,
+      Nota nota, int tabIndex) {
+    // Cria a lista de opções do menu baseado na aba
+    List<PopupMenuEntry<String>> menuItems = [];
+
+    if (tabIndex == 0) {
+      // Aba "Anotações": notas comuns
+      menuItems = <PopupMenuEntry<String>>[
+        // Opção: Arquivar
+        PopupMenuItem(
+          onTap: () {
+            // Arquiva a nota
+            viewModel.arquivarNota(nota);
+          },
+          child: const Text('Arquivar'),
+        ),
+        // Separador visual
+        const PopupMenuDivider(),
+        // Opção: Enviar para lixeira (em vermelho)
+        PopupMenuItem(
+          onTap: () {
+            // Apaga a nota (move para lixeira)
+            viewModel.apagarNota(nota);
+          },
+          child: const Text(
+            'Enviar para a lixeira',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ];
+    } else if (tabIndex == 1) {
+      // Aba "Arquivo": notas arquivadas
+      menuItems = <PopupMenuEntry<String>>[
+        // Opção: Desarquivar
+        PopupMenuItem(
+          onTap: () {
+            // Desarchiva a nota
+            viewModel.desarquivarNota(nota);
+          },
+          child: const Text('Desarquivar'),
+        ),
+        // Separador visual
+        const PopupMenuDivider(),
+        // Opção: Enviar para lixeira (em vermelho)
+        PopupMenuItem(
+          onTap: () {
+            // Apaga a nota (move para lixeira)
+            viewModel.apagarNota(nota);
+          },
+          child: const Text(
+            'Enviar para a lixeira',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ];
+    } else {
+      // Aba "Lixeira": notas apagadas
+      menuItems = <PopupMenuEntry<String>>[
+        // Opção: Excluir definitivamente (em vermelho)
+        PopupMenuItem(
+          onTap: () {
+            // Exclui permanentemente do banco
+            viewModel.deletarPermanentemente(nota);
+          },
+          child: const Text(
+            'Excluir definitivamente',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ];
+    }
+
     // showMenu: função do Flutter que exibe um menu popup
     showMenu<String>(
       // context: contexto do Flutter
       context: context,
-      // position: onde o menu deve aparecer (abaixo do botão que foi toquado)
-      // Aproximadamente na posição do botão (o Flutter calcula automaticamente)
+      // position: onde o menu deve aparecer
       position: RelativeRect.fromLTRB(100, 100, 0, 0),
-      // items: lista de opções do menu
-      items: <PopupMenuEntry<String>>[
-        // Opção 1: Arquivar
-        PopupMenuItem(
-          // onTap: chamado quando o usuário toca nessa opção
-          onTap: () {
-            // Chama o método do viewModel que arquiva a nota
-            viewModel.arquivarNota(nota);
-          },
-          // child: o conteúdo visual da opção
-          child: const Text('Arquivar'),
-        ),
-        // Separador visual (linha fina entre opções)
-        const PopupMenuDivider(),
-        // Opção 2: Apagar
-        PopupMenuItem(
-          // onTap: chamado quando o usuário toca em "Apagar"
-          onTap: () {
-            // Chama o método do viewModel que apaga a nota
-            viewModel.apagarNota(nota);
-          },
-          // child: o conteúdo visual com texto em vermelho
-          child: const Text(
-            'Apagar anotação',
-            // style: estilo do texto
-            style: TextStyle(
-              // color: vermelho para indicar ação destrutiva
-              color: Colors.red,
-            ),
-          ),
-        ),
-      ],
+      // items: lista de opções do menu (variável baseado na aba)
+      items: menuItems,
     );
   }
 }

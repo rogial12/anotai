@@ -170,12 +170,14 @@ class _EditorViewState extends State<EditorView> {
     }
   }
 
-  /// _showContextMenu: exibe o menu de contexto (três pontos) com opções de arquivar e apagar
+  /// _showContextMenu: exibe o menu de contexto (três pontos)
   ///
-  /// Similar ao menu da HomeView, mas aqui estamos na EditorView
-  /// Opções:
-  /// 1. Arquivar: move a nota para o arquivo
-  /// 2. Apagar: move a nota para a lixeira
+  /// O menu muda baseado no estado da nota:
+  /// - Se nota é comum: Arquivar, Enviar para lixeira
+  /// - Se nota é arquivada: Desarquivar, Enviar para lixeira
+  /// - Se nota está apagada: Excluir definitivamente, Restaurar
+  ///
+  /// Similar ao menu da HomeView, integrado na EditorView
   void _showContextMenu(BuildContext context) {
     // Recupera a nota que está sendo editada
     final notaEmEdicao = _viewModel.notaEmEdicao;
@@ -185,11 +187,71 @@ class _EditorViewState extends State<EditorView> {
       return;
     }
 
-    // Exibe o menu popup
-    showMenu<String>(
-      context: context,
-      position: RelativeRect.fromLTRB(100, 100, 0, 0),
-      items: <PopupMenuEntry<String>>[
+    // Cria a lista de opções baseado no estado da nota
+    List<PopupMenuEntry<String>> menuItems = [];
+
+    if (notaEmEdicao.isApagada) {
+      // Nota está na lixeira: opções para restaurar ou excluir definitivamente
+      menuItems = <PopupMenuEntry<String>>[
+        // Opção: Restaurar
+        PopupMenuItem(
+          onTap: () {
+            // Restaura a nota da lixeira
+            // Mantém isArquivada, então volta para o lugar certo
+            _viewModel.restaurarNota(notaEmEdicao);
+            // Fecha a EditorView e volta para HomeView
+            Navigator.of(context).pop();
+          },
+          child: const Text('Restaurar'),
+        ),
+        // Separador visual
+        const PopupMenuDivider(),
+        // Opção: Excluir definitivamente (em vermelho)
+        PopupMenuItem(
+          onTap: () {
+            // Exclui permanentemente do banco
+            _viewModel.deletarPermanentemente(notaEmEdicao);
+            // Fecha a EditorView e volta para HomeView
+            Navigator.of(context).pop();
+          },
+          child: const Text(
+            'Excluir definitivamente',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ];
+    } else if (notaEmEdicao.isArquivada) {
+      // Nota é arquivada: opções para desarquivar ou enviar para lixeira
+      menuItems = <PopupMenuEntry<String>>[
+        // Opção: Desarquivar
+        PopupMenuItem(
+          onTap: () {
+            // Desarchiva a nota
+            _viewModel.desarquivarNota(notaEmEdicao);
+            // Fecha a EditorView e volta para HomeView
+            Navigator.of(context).pop();
+          },
+          child: const Text('Desarquivar'),
+        ),
+        // Separador visual
+        const PopupMenuDivider(),
+        // Opção: Enviar para lixeira (em vermelho)
+        PopupMenuItem(
+          onTap: () {
+            // Apaga a nota (move para lixeira)
+            _viewModel.apagarNota(notaEmEdicao);
+            // Fecha a EditorView e volta para HomeView
+            Navigator.of(context).pop();
+          },
+          child: const Text(
+            'Enviar para a lixeira',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ];
+    } else {
+      // Nota é comum (não arquivada, não apagada): opções para arquivar ou enviar para lixeira
+      menuItems = <PopupMenuEntry<String>>[
         // Opção: Arquivar
         PopupMenuItem(
           onTap: () {
@@ -202,7 +264,7 @@ class _EditorViewState extends State<EditorView> {
         ),
         // Separador visual
         const PopupMenuDivider(),
-        // Opção: Apagar (em vermelho)
+        // Opção: Enviar para lixeira (em vermelho)
         PopupMenuItem(
           onTap: () {
             // Apaga a nota (move para lixeira)
@@ -211,11 +273,18 @@ class _EditorViewState extends State<EditorView> {
             Navigator.of(context).pop();
           },
           child: const Text(
-            'Apagar anotação',
+            'Enviar para a lixeira',
             style: TextStyle(color: Colors.red),
           ),
         ),
-      ],
+      ];
+    }
+
+    // Exibe o menu popup com as opções variáveis
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(100, 100, 0, 0),
+      items: menuItems,
     );
   }
 
