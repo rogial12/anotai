@@ -5,6 +5,7 @@ import '../repositories/nota_repository.dart';
 class NotaViewModel extends ChangeNotifier {
   final NotaRepository _repository;
   List<Nota> _notas = [];
+  Nota? _notaEmEdicao; // Rastreia qual nota está sendo editada (null = criando nova)
 
   NotaViewModel(this._repository);
 
@@ -18,6 +19,15 @@ class NotaViewModel extends ChangeNotifier {
       _notas.where((n) => n.isArquivada && !n.estaApagada).toList();
 
   List<Nota> get lixeira => _notas.where((n) => n.estaApagada).toList();
+
+  // Getter para a nota sendo editada (null indica modo criação)
+  Nota? get notaEmEdicao => _notaEmEdicao;
+
+  // Define qual nota está sendo editada ou null para modo criação
+  void setNotaEmEdicao(Nota? nota) {
+    _notaEmEdicao = nota;
+    notifyListeners();
+  }
 
   Future<void> carregarNotas() async {
     _notas = await _repository.buscarTodas();
