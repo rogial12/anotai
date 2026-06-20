@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/nota_viewmodel.dart';
+import 'editor_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -31,7 +32,11 @@ class HomeView extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const EditorView()),
+          );
+        },
         child: const Icon(Icons.add),
       ),
     );
