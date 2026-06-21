@@ -213,5 +213,35 @@ class AppTheme {
     ),
   ];
 
-  // TODO: adicionar tokens de espaçamento
+  // ---------------------------------------------------------------------------
+  // Espaçamentos
+  // Fonte: docs/design_handoff_anotai/README.md — seção "Raios, sombras, espaçamento"
+  // Valores com clamp() recebem um fixo intermediário; o componente aplica
+  // MediaQuery para calcular o valor responsivo real.
+  // ---------------------------------------------------------------------------
+
+  // Larguras máximas de conteúdo (centralizadas)
+  static const double listMaxWidth   = 920; // coluna da lista de notas
+  static const double editorMaxWidth = 720; // coluna do editor
+
+  // Padding do header da HomeView
+  // handoff: clamp(22px,3vw,34px) vertical · clamp(20px,4vw,48px) horizontal · 16px bottom
+  static const double headerPaddingV      = 28; // fixo intermediário (min 22, max 34)
+  static const double headerPaddingH      = 34; // fixo intermediário (min 20, max 48)
+  static const double headerPaddingBottom = 16;
+
+  // Padding de cada linha da lista (fixo, sem clamp)
+  static const EdgeInsets tilePadding = EdgeInsets.symmetric(
+    vertical: 17,
+    horizontal: 14,
+  );
+
+  // Padding do corpo do editor
+  // handoff: clamp(28px,5vw,56px) top · clamp(20px,5vw,40px) horizontal · 80px bottom
+  static const double editorPaddingTop = 42; // fixo intermediário (min 28, max 56)
+  static const double editorPaddingH   = 30; // fixo intermediário (min 20, max 40)
+  static const double editorPaddingBottom = 80; // espaço para o FAB não cobrir o texto
+
+  // Padding inferior da lista (espaço para o dock flutuante não cobrir as notas)
+  static const double listBottomPadding = 130;
 }

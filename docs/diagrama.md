@@ -87,6 +87,22 @@ classDiagram
         class InfoPopover["InfoPopover (placeholder)"]
     }
 
+    namespace ui_styles {
+        class AppTheme {
+            +Color paper, paper2, card
+            +Color ink, muted, faint
+            +Color accent, accentPress, accentWeak
+            +Color amber, danger, saved
+            +TextStyle wordmark, greeting, sectionTitle
+            +TextStyle noteTitleList, notePreview, meta
+            +TextStyle editorTitle, editorBody, editorBodySerif
+            +double radiusButton, radiusTile, radiusDock
+            +List shadowButton, shadowMenu, shadowDock
+            +EdgeInsets tilePadding
+            +double listMaxWidth, editorMaxWidth
+        }
+    }
+
     NotaViewModel --> NotaRepository : usa
     LocalNotaRepository ..|> NotaRepository : implementa
     HomeView --> NotaViewModel : observa

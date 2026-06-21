@@ -62,7 +62,7 @@ lib/
 ├── ui/             # Tudo relacionado à interface
 │   ├── views/      # HomeView, EditorView: orquestram a tela
 │   ├── components/ # Widgets reutilizáveis (home/ e editor/)
-│   ├── styles/     # AppTheme: tokens de design centralizados
+│   ├── styles/     # AppTheme: tokens implementados (cores, tipografia, raios, sombras, espaçamentos)
 │   └── utils/      # Funções auxiliares puras (formatadores, etc.)
 └── main.dart       # Inicialização (Hive, Provider, app raiz)
 ```
@@ -115,8 +115,8 @@ anotai/
 │   │   ├── components/
 │   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, etc.
 │   │   │   └── editor/               # EditorHeader, InfoPopover
-│   │   ├── styles/app_theme.dart     # Tokens de design (cores, tipografia, etc.)
-│   │   └── utils/formatters.dart     # Funções auxiliares puras
+│   │   ├── styles/app_theme.dart     # Tokens implementados: 16 cores, 13 estilos, raios, sombras, espaçamentos
+│   │   └── utils/formatters.dart     # Funções auxiliares puras (placeholder)
 │   └── main.dart                     # Entry point
 ├── pubspec.yaml                      # Dependências (hive, provider)
 ├── docs/diagrama.md                  # Diagrama de classes (Mermaid)
@@ -212,6 +212,22 @@ classDiagram
     namespace ui_components_editor {
         class EditorHeader["EditorHeader (placeholder)"]
         class InfoPopover["InfoPopover (placeholder)"]
+    }
+
+    namespace ui_styles {
+        class AppTheme {
+            +Color paper, paper2, card
+            +Color ink, muted, faint
+            +Color accent, accentPress, accentWeak
+            +Color amber, danger, saved
+            +TextStyle wordmark, greeting, sectionTitle
+            +TextStyle noteTitleList, notePreview, meta
+            +TextStyle editorTitle, editorBody, editorBodySerif
+            +double radiusButton, radiusTile, radiusDock
+            +List shadowButton, shadowMenu, shadowDock
+            +EdgeInsets tilePadding
+            +double listMaxWidth, editorMaxWidth
+        }
     }
 
     NotaViewModel --> NotaRepository : usa
