@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{background:oklch(0.975 0.012 78);}
+  input,textarea,button{font-family:inherit;}
+  textarea::placeholder,input::placeholder{color:oklch(0.7 0.02 70);}
+  ::selection{background:oklch(0.9 0.06 55);}
+  *::-webkit-scrollbar{width:11px;height:11px;}
+  *::-webkit-scrollbar-thumb{background:oklch(0.86 0.015 75);border-radius:99px;border:3px solid transparent;background-clip:content-box;}
+  @keyframes pop{from{opacity:0;transform:translateY(6px) scale(.98);}to{opacity:1;transform:none;}}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+</style>
+</helmet>
+
+<div style="--paper:oklch(0.975 0.012 78);--paper2:oklch(0.955 0.016 76);--card:oklch(0.995 0.005 85);--ink:oklch(0.28 0.022 62);--muted:oklch(0.53 0.022 66);--faint:oklch(0.66 0.018 68);--line:oklch(0.9 0.013 76);--line2:oklch(0.93 0.01 76);--accent:oklch(0.56 0.13 48);--accent-press:oklch(0.5 0.13 46);--accent-weak:oklch(0.93 0.04 62);--amber:oklch(0.76 0.135 73);--danger:oklch(0.55 0.16 28);--danger-weak:oklch(0.94 0.045 30);position:relative;height:100vh;width:100%;overflow:hidden;background:var(--paper);color:var(--ink);font-family:'Hanken Grotesk',sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;">
+
+  <!-- ============================== HOME ============================== -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+  <div style="height:100%;display:flex;flex-direction:column;animation:fade .25s ease;">
+
+    <header style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:20px 28px;flex-wrap:wrap;padding:clamp(22px,3vw,34px) clamp(20px,4vw,48px) 16px;">
+      <div style="min-width:0;">
+        <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:clamp(27px,3vw,35px);letter-spacing:-0.025em;line-height:1;color:var(--ink);">Anotai</div>
+        <sc-if value="{{ showGreeting }}" hint-placeholder-val="{{ true }}">
+          <div style="margin-top:7px;font-size:14.5px;color:var(--muted);">Olá, {{ userName }}</div>
+        </sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 15px;width:clamp(170px,22vw,250px);">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="color:var(--faint);flex:none;"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" placeholder="Buscar notas" value="{{ search }}" onInput="{{ onSearch }}" style="border:none;outline:none;background:transparent;flex:1;min-width:0;font-size:14.5px;color:var(--ink);">
+        </div>
+        <button onClick="{{ onNewNote }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:11px 17px;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px oklch(0.5 0.12 48 / .25);transition:background .15s;" style-hover="background:var(--accent-press);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Nova nota
+        </button>
+        <div style="width:42px;height:42px;border-radius:999px;background:var(--accent-weak);border:1px solid oklch(0.86 0.05 60);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none;">{{ avatarInitial }}</div>
+      </div>
+    </header>
+
+    <main style="flex:1;overflow-y:auto;padding:8px clamp(20px,4vw,48px) 130px;">
+      <div style="max-width:920px;margin:0 auto;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 4px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;">
+          <h2 style="margin:0;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.01em;color:var(--ink);">{{ sectionTitle }}</h2>
+          <span style="font-size:13.5px;color:var(--faint);font-variant-numeric:tabular-nums;">{{ sectionCount }}</span>
+        </div>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:90px 20px;text-align:center;color:var(--faint);">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="opacity:.55;"><path d="M4 4h11l5 5v11a0 0 0 0 1 0 0H4z"></path><path d="M14 4v6h6"></path></svg>
+            <div style="font-size:15.5px;">{{ emptyMsg }}</div>
+          </div>
+        </sc-if>
+
+        <sc-for list="{{ visibleNotes }}" as="note" hint-placeholder-count="5">
+          <div onClick="{{ note.onOpen }}" style="position:relative;display:flex;align-items:flex-start;gap:16px;padding:17px 14px;border-radius:13px;cursor:pointer;transition:background .14s;" style-hover="background:var(--paper2);">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:9px;">
+                <sc-if value="{{ note.favorita }}" hint-placeholder-val="{{ false }}">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color:var(--amber);flex:none;"><path d="M12 2.6l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.6l-5.9 3.16 1.12-6.57L2.45 9.54l6.6-.96z"></path></svg>
+                </sc-if>
+                <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:16.5px;letter-spacing:-0.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ note.title }}</div>
+              </div>
+              <div style="margin-top:5px;font-size:14.5px;line-height:1.5;color:var(--muted);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;">{{ note.preview }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:2px;flex:none;padding-top:1px;">
+              <span style="font-size:12.5px;color:var(--faint);margin-right:8px;white-space:nowrap;font-variant-numeric:tabular-nums;">{{ note.date }}</span>
+
+              <sc-if value="{{ note.isTrash }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ note.onRestore }}" title="Restaurar" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--accent-weak);color:var(--accent);">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"></path><polyline points="3.2 4.2 3.2 8 7 8"></polyline></svg>
+                </button>
+              </sc-if>
+              <sc-if value="{{ note.notTrash }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ note.onStar }}" title="Favoritar" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:none;background:transparent;cursor:pointer;transition:background .14s;color:var(--faint);" style-hover="background:var(--paper2);">
+                  <sc-if value="{{ note.favorita }}" hint-placeholder-val="{{ false }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:var(--amber);"><path d="M12 2.6l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.6l-5.9 3.16 1.12-6.57L2.45 9.54l6.6-.96z"></path></svg>
+                  </sc-if>
+                  <sc-if value="{{ note.notFav }}" hint-placeholder-val="{{ true }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.6l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.6l-5.9 3.16 1.12-6.57L2.45 9.54l6.6-.96z"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-if>
+
+              <button onClick="{{ note.onMore }}" title="Opções" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:9px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="12" cy="19" r="1.6"></circle></svg>
+              </button>
+            </div>
+
+            <sc-if value="{{ note.menuOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:52px;right:6px;z-index:50;min-width:230px;background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:0 12px 34px oklch(0.4 0.03 60 / .16),0 2px 6px oklch(0.4 0.03 60 / .08);padding:6px;animation:pop .14s ease;">
+                <sc-if value="{{ tabNotas }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ note.onArchive }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                    Arquivar
+                  </button>
+                </sc-if>
+                <sc-if value="{{ tabArquivo }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ note.onUnarchive }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><polyline points="9.5 13 12 10.5 14.5 13"></polyline><line x1="12" y1="10.5" x2="12" y2="16"></line></svg>
+                    Desarquivar
+                  </button>
+                </sc-if>
+                <sc-if value="{{ tabTrashMenu }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ note.onRestore }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"></path><polyline points="3.2 4.2 3.2 8 7 8"></polyline></svg>
+                    Restaurar
+                  </button>
+                </sc-if>
+
+                <div style="height:1px;background:var(--line2);margin:5px 9px;"></div>
+
+                <sc-if value="{{ note.notTrash }}" hint-placeholder-val="{{ true }}">
+                  <button onClick="{{ note.onTrash }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--danger);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--danger-weak);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Enviar para a lixeira
+                  </button>
+                </sc-if>
+                <sc-if value="{{ note.isTrash }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ note.onDeleteForever }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--danger);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--danger-weak);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    Excluir definitivamente
+                  </button>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </main>
+
+    <!-- bottom dock -->
+    <nav style="position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 10px 30px oklch(0.4 0.03 60 / .14),0 2px 6px oklch(0.4 0.03 60 / .07);z-index:30;">
+      <sc-if value="{{ notasActive }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:9px;background:var(--accent-weak);color:var(--accent);border-radius:13px;padding:9px 17px;font-size:14px;font-weight:600;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="7" x2="20" y2="7"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="8" y1="17" x2="15" y2="17"></line><circle cx="4" cy="7" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="17" r="1"></circle></svg>
+          Anotações
+        </div>
+      </sc-if>
+      <sc-if value="{{ notasInactive }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ goNotas }}" style="display:flex;align-items:center;gap:9px;background:transparent;color:var(--muted);border:none;border-radius:13px;padding:9px 16px;font-size:14px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="7" x2="20" y2="7"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="8" y1="17" x2="15" y2="17"></line><circle cx="4" cy="7" r="1"></circle><circle cx="4" cy="12" r="1"></circle><circle cx="4" cy="17" r="1"></circle></svg>
+          Anotações
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ arquivoActive }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:9px;background:var(--accent-weak);color:var(--accent);border-radius:13px;padding:9px 17px;font-size:14px;font-weight:600;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+          Arquivo
+        </div>
+      </sc-if>
+      <sc-if value="{{ arquivoInactive }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ goArquivo }}" style="display:flex;align-items:center;gap:9px;background:transparent;color:var(--muted);border:none;border-radius:13px;padding:9px 16px;font-size:14px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+          Arquivo
+        </button>
+      </sc-if>
+
+      <sc-if value="{{ lixeiraActive }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:9px;background:var(--accent-weak);color:var(--accent);border-radius:13px;padding:9px 17px;font-size:14px;font-weight:600;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Lixeira
+        </div>
+      </sc-if>
+      <sc-if value="{{ lixeiraInactive }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ goLixeira }}" style="display:flex;align-items:center;gap:9px;background:transparent;color:var(--muted);border:none;border-radius:13px;padding:9px 16px;font-size:14px;font-weight:500;cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          Lixeira
+        </button>
+      </sc-if>
+    </nav>
+  </div>
+  </sc-if>
+
+  <!-- ============================== EDITOR ============================== -->
+  <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ false }}">
+  <div style="height:100%;display:flex;flex-direction:column;animation:fade .25s ease;">
+
+    <header style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px clamp(18px,4vw,40px);border-bottom:1px solid var(--line);background:oklch(0.978 0.011 78 / .85);backdrop-filter:blur(8px);position:relative;z-index:20;">
+      <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+        <button onClick="{{ backHome }}" title="Voltar" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;flex:none;transition:background .14s;" style-hover="background:var(--paper2);">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div style="min-width:0;">
+          <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:15px;color:var(--ink);">{{ editorModeLabel }}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <span style="width:6px;height:6px;border-radius:99px;background:{{ saveDotColor }};flex:none;"></span>
+            <span style="font-size:12.5px;color:var(--faint);">{{ saveStatusLabel }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:6px;position:relative;">
+        <button onClick="{{ editorToggleFav }}" title="Favorito" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:none;background:transparent;cursor:pointer;transition:background .14s;color:var(--faint);" style-hover="background:var(--paper2);">
+          <sc-if value="{{ editorFav }}" hint-placeholder-val="{{ false }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="color:var(--amber);"><path d="M12 2.6l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.6l-5.9 3.16 1.12-6.57L2.45 9.54l6.6-.96z"></path></svg>
+          </sc-if>
+          <sc-if value="{{ editorNotFav }}" hint-placeholder-val="{{ true }}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 2.6l2.95 5.98 6.6.96-4.77 4.65 1.13 6.57L12 17.6l-5.9 3.16 1.12-6.57L2.45 9.54l6.6-.96z"></path></svg>
+          </sc-if>
+        </button>
+
+        <button onClick="{{ toggleInfo }}" title="Informações" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="11" x2="12" y2="16"></line><circle cx="12" cy="7.6" r="0.6" fill="currentColor"></circle></svg>
+        </button>
+
+        <button onClick="{{ toggleEditorMenu }}" title="Opções" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .14s,color .14s;" style-hover="background:var(--paper2);color:var(--ink);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="12" cy="19" r="1.7"></circle></svg>
+        </button>
+
+        <div style="width:1px;height:24px;background:var(--line);margin:0 6px;"></div>
+
+        <button onClick="{{ saveAndBack }}" style="display:flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:11px;padding:10px 18px;font-size:14.5px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px oklch(0.5 0.12 48 / .25);transition:background .15s;" style-hover="background:var(--accent-press);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Salvar
+        </button>
+
+        <!-- info popover -->
+        <sc-if value="{{ infoOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:52px;right:0;z-index:55;width:270px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px oklch(0.4 0.03 60 / .18);padding:16px 17px;animation:pop .14s ease;">
+            <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:600;font-size:14.5px;color:var(--ink);margin-bottom:12px;">Informações da nota</div>
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:5px 0;"><span style="color:var(--faint);">Criada em</span><span style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ editorDate }}</span></div>
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:5px 0;"><span style="color:var(--faint);">Palavras</span><span style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ wordCount }}</span></div>
+            <div style="display:flex;justify-content:space-between;gap:12px;font-size:13.5px;padding:5px 0;"><span style="color:var(--faint);">Caracteres</span><span style="color:var(--ink);font-variant-numeric:tabular-nums;">{{ charCount }}</span></div>
+            <button onClick="{{ toggleInfo }}" style="margin-top:12px;width:100%;padding:9px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:13.5px;font-weight:500;cursor:pointer;transition:background .14s;" style-hover="background:var(--paper2);">Fechar</button>
+          </div>
+        </sc-if>
+
+        <!-- editor options menu -->
+        <sc-if value="{{ editorMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;top:52px;right:0;z-index:55;min-width:240px;background:var(--card);border:1px solid var(--line);border-radius:13px;box-shadow:0 14px 36px oklch(0.4 0.03 60 / .18);padding:6px;animation:pop .14s ease;">
+            <sc-if value="{{ editorNoteNormal }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ editorArchive }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><line x1="10" y1="12" x2="14" y2="12"></line></svg>
+                Arquivar
+              </button>
+            </sc-if>
+            <sc-if value="{{ editorNoteArquivada }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ editorUnarchive }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><rect x="3" y="4" width="18" height="4" rx="1"></rect><path d="M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8"></path><polyline points="9.5 13 12 10.5 14.5 13"></polyline><line x1="12" y1="10.5" x2="12" y2="16"></line></svg>
+                Desarquivar
+              </button>
+            </sc-if>
+            <sc-if value="{{ editorNoteApagada }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ editorRestore }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--ink);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--paper2);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"></path><polyline points="3.2 4.2 3.2 8 7 8"></polyline></svg>
+                Restaurar
+              </button>
+            </sc-if>
+
+            <div style="height:1px;background:var(--line2);margin:5px 9px;"></div>
+
+            <sc-if value="{{ editorNoteApagada }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ editorDelete }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--danger);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--danger-weak);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                Excluir definitivamente
+              </button>
+            </sc-if>
+            <sc-if value="{{ editorNotApagada }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ editorTrash }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:10px 11px;border-radius:9px;border:none;background:transparent;color:var(--danger);font-size:14.5px;cursor:pointer;text-align:left;transition:background .12s;" style-hover="background:var(--danger-weak);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Enviar para a lixeira
+              </button>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </header>
+
+    <main style="flex:1;overflow-y:auto;padding:clamp(28px,5vw,56px) clamp(20px,5vw,40px) 80px;">
+      <article style="max-width:720px;margin:0 auto;">
+        <textarea rows="1" placeholder="Título" value="{{ editorTitle }}" onInput="{{ onTitleChange }}" style="display:block;width:100%;border:none;outline:none;background:transparent;resize:none;overflow:hidden;font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:clamp(25px,3.2vw,33px);letter-spacing:-0.02em;line-height:1.2;color:var(--ink);padding:0;"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin:14px 0 22px;font-size:13px;color:var(--faint);">
+          <span style="font-variant-numeric:tabular-nums;">{{ editorDate }}</span>
+          <span style="width:3px;height:3px;border-radius:99px;background:var(--faint);"></span>
+          <span style="font-variant-numeric:tabular-nums;">{{ wordCount }} palavras</span>
+        </div>
+        <div style="height:1px;background:var(--line2);margin-bottom:24px;"></div>
+        <textarea placeholder="Escreva sua nota…" value="{{ editorContent }}" onInput="{{ onContentChange }}" style="{{ contentStyle }}"></textarea>
+      </article>
+    </main>
+  </div>
+  </sc-if>
+
+  <!-- overlay to dismiss menus -->
+  <sc-if value="{{ anyOverlay }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeAll }}" style="position:fixed;inset:0;z-index:45;background:transparent;"></div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;userName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Igor Almenara&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showGreeting&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;noteSerif&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    const M=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    this._fmt=(d)=>`${String(d.getDate())} ${M[d.getMonth()]} ${d.getFullYear()}`;
+    this._today=this._fmt(new Date());
+    this.state={
+      view:'home',
+      tab:'notas',
+      search:'',
+      rowMenuId:null,
+      editorMenuOpen:false,
+      infoOpen:false,
+      editingId:null,
+      editorTitle:'',
+      editorContent:'',
+      saveStatus:'salvo',
+      notes:[
+        {id:'n1',title:'Lista de leitura — junho',content:'Releituras e descobertas para este mês:\n\n• O Conto da Aia — Margaret Atwood\n• A Hora da Estrela — Clarice Lispector\n• Neuromancer — William Gibson\n• Torto Arado — Itamar Vieira Junior\n\nComeçar pela Clarice, é o mais curto e o que mais quero reler.',favorita:true,arquivada:false,apagada:false,date:'12 jun 2026'},
+        {id:'n2',title:'Ideias para a varanda',content:'Plantar manjericão, alecrim e hortelã nos vasos de barro. Comprar terra adubada no sábado. Mover a samambaia para um canto com mais sombra — está perdendo folhas no sol da tarde.',favorita:false,arquivada:false,apagada:false,date:'10 jun 2026'},
+        {id:'n3',title:'Pauta da reunião de quinta',content:'1. Fechar o escopo da v1.1\n2. Revisar a paleta com o time de design\n3. Orçamento de infraestrutura até sexta\n4. Próximos passos do onboarding',favorita:true,arquivada:false,apagada:false,date:'9 jun 2026'},
+        {id:'n4',title:'Pão de fermentação natural',content:'Receita base (massa de 75% de hidratação):\n500g de farinha, 375g de água, 100g de levain ativo, 10g de sal.\n\nAutólise de 40 min antes de adicionar o sal. Dobras a cada 30 min por 2h. Geladeira de um dia para o outro.',favorita:false,arquivada:false,apagada:false,date:'6 jun 2026'},
+        {id:'n5',title:'Manhã de domingo',content:'Acordei antes do despertador. O café saiu no ponto e a casa estava em silêncio. Anotar à mão, mesmo que pouco, me deixa mais presente no dia. Quero manter esse hábito.',favorita:false,arquivada:false,apagada:false,date:'1 jun 2026'},
+        {id:'n6',title:'Serra da Mantiqueira',content:'Reservar a pousada em Gonçalves para o feriado. Levar casaco — a noite esfria bastante. Trilha da Pedra do Forno no sábado de manhã, ir cedo para evitar o sol.',favorita:false,arquivada:true,apagada:false,date:'20 mai 2026'},
+        {id:'n7',title:'Assinaturas recorrentes',content:'Revisar as assinaturas do mês e cancelar o que não uso mais. Reavaliar o plano de armazenamento na nuvem.',favorita:false,arquivada:true,apagada:false,date:'14 mai 2026'},
+        {id:'n8',title:'Rascunho sem título',content:'anotação antiga que eu não preciso mais guardar…',favorita:false,arquivada:false,apagada:true,date:'2 mai 2026'}
+      ]
+    };
+  }
+
+  _preview(c){ return (c||'').replace(/\s+/g,' ').trim().slice(0,120); }
+
+  _mutate(id,kind){
+    this.setState(s=>{
+      let notes=s.notes;
+      if(kind==='delete'){ notes=notes.filter(n=>n.id!==id); }
+      else notes=notes.map(n=>{
+        if(n.id!==id) return n;
+        if(kind==='archive') return {...n,arquivada:true,apagada:false};
+        if(kind==='unarchive') return {...n,arquivada:false};
+        if(kind==='trash') return {...n,apagada:true};
+        if(kind==='restore') return {...n,apagada:false};
+        return n;
+      });
+      return {notes, rowMenuId:null};
+    });
+  }
+  toggleFav(id){ this.setState(s=>({notes:s.notes.map(n=>n.id===id?{...n,favorita:!n.favorita}:n)})); }
+
+  openEditor(id){
+    const n=this.state.notes.find(x=>x.id===id);
+    if(!n) return;
+    this.setState({view:'editor',editingId:id,editorTitle:n.title,editorContent:n.content,saveStatus:'salvo',editorMenuOpen:false,infoOpen:false,rowMenuId:null});
+  }
+  newNote(){ this.setState({view:'editor',editingId:null,editorTitle:'',editorContent:'',saveStatus:'salvo',editorMenuOpen:false,infoOpen:false,rowMenuId:null}); }
+
+  _commit(){
+    const {editingId,editorTitle,editorContent}=this.state;
+    if(!editorTitle.trim() && !editorContent.trim()) return;
+    if(editingId==null){
+      const id='n'+Date.now();
+      const note={id,title:editorTitle||'Sem título',content:editorContent,favorita:false,arquivada:false,apagada:false,date:this._today};
+      this.setState(s=>({notes:[note,...s.notes],editingId:id}));
+    } else {
+      this.setState(s=>({notes:s.notes.map(n=>n.id===editingId?{...n,title:editorTitle,content:editorContent}:n)}));
+    }
+  }
+  _schedule(){ clearTimeout(this._t); this._t=setTimeout(()=>{ this._commit(); this.setState({saveStatus:'salvo'}); },900); }
+
+  onTitleChange(e){ this.setState({editorTitle:e.target.value,saveStatus:'salvando'}); this._schedule(); }
+  onContentChange(e){ this.setState({editorContent:e.target.value,saveStatus:'salvando'}); this._schedule(); }
+
+  backHome(){ clearTimeout(this._t); this._commit(); this.setState({view:'home',editorMenuOpen:false,infoOpen:false,saveStatus:'salvo'}); }
+  saveAndBack(){ this.backHome(); }
+
+  editorToggleFav(){
+    this.setState(s=>{
+      let {notes,editingId,editorTitle,editorContent}=s;
+      if(editingId==null){
+        const id='n'+Date.now();
+        notes=[{id,title:editorTitle||'Sem título',content:editorContent,favorita:true,arquivada:false,apagada:false,date:this._today},...notes];
+        return {notes,editingId:id};
+      }
+      return {notes:notes.map(n=>n.id===editingId?{...n,favorita:!n.favorita}:n)};
+    });
+  }
+
+  editorAction(kind){
+    this.setState(s=>{
+      let {notes,editingId,editorTitle,editorContent,tab}=s;
+      if(editingId==null){
+        editingId='n'+Date.now();
+        notes=[{id:editingId,title:editorTitle||'Sem título',content:editorContent,favorita:false,arquivada:false,apagada:false,date:this._today},...notes];
+      }
+      if(kind==='delete'){ notes=notes.filter(n=>n.id!==editingId); }
+      else notes=notes.map(n=>{
+        if(n.id!==editingId) return n;
+        if(kind==='archive') return {...n,arquivada:true,apagada:false};
+        if(kind==='unarchive') return {...n,arquivada:false};
+        if(kind==='trash') return {...n,apagada:true};
+        if(kind==='restore') return {...n,apagada:false};
+        return n;
+      });
+      const newTab = kind==='archive'?'arquivo' : kind==='trash'?'lixeira' : kind==='unarchive'?'notas' : tab;
+      return {notes,editingId:null,view:'home',editorMenuOpen:false,tab:newTab};
+    });
+  }
+
+  renderVals(){
+    const s=this.state;
+    const userName=this.props.userName ?? 'Marina';
+    const showGreeting=this.props.showGreeting ?? true;
+    const serif=this.props.noteSerif ?? false;
+
+    const q=s.search.trim().toLowerCase();
+    let list=s.notes.filter(n=> s.tab==='notas' ? (!n.arquivada && !n.apagada)
+                              : s.tab==='arquivo' ? (n.arquivada && !n.apagada)
+                              : n.apagada);
+    const total=list.length;
+    if(q) list=list.filter(n=>(n.title+' '+n.content).toLowerCase().includes(q));
+
+    const isTrash=s.tab==='lixeira';
+    const visibleNotes=list.map(n=>({
+      id:n.id, title:n.title, preview:this._preview(n.content), date:n.date,
+      favorita:n.favorita, notFav:!n.favorita, isTrash, notTrash:!isTrash,
+      menuOpen:s.rowMenuId===n.id,
+      onOpen:()=>this.openEditor(n.id),
+      onStar:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this.toggleFav(n.id);},
+      onMore:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this.setState(st=>({rowMenuId:st.rowMenuId===n.id?null:n.id,editorMenuOpen:false,infoOpen:false}));},
+      onArchive:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this._mutate(n.id,'archive');},
+      onUnarchive:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this._mutate(n.id,'unarchive');},
+      onTrash:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this._mutate(n.id,'trash');},
+      onRestore:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this._mutate(n.id,'restore');},
+      onDeleteForever:(e)=>{e&&e.stopPropagation&&e.stopPropagation();this._mutate(n.id,'delete');}
+    }));
+
+    const count=(f)=>s.notes.filter(f).length;
+    const sectionTitle = s.tab==='notas'?'Anotações' : s.tab==='arquivo'?'Arquivo':'Lixeira';
+    const emptyMsg = q ? 'Nenhuma nota encontrada.'
+                   : s.tab==='notas'?'Nenhuma nota ainda.'
+                   : s.tab==='arquivo'?'Nenhuma nota arquivada.':'Lixeira vazia.';
+
+    const editorNote = s.editingId!=null ? s.notes.find(n=>n.id===s.editingId) : null;
+    const eFav=!!(editorNote && editorNote.favorita);
+    const eApag=!!(editorNote && editorNote.apagada);
+    const eArq=!!(editorNote && editorNote.arquivada && !editorNote.apagada);
+    const eNormal=!eApag && !eArq;
+    const words=(s.editorContent.trim().match(/\S+/g)||[]).length;
+    const contentStyle = `display:block;width:100%;min-height:50vh;border:none;outline:none;background:transparent;resize:none;color:${'var(--ink)'};padding:0;font-size:${serif?'19px':'18px'};line-height:1.78;font-family:${serif?"'Newsreader',Georgia,serif":"'Hanken Grotesk',sans-serif"};`;
+
+    return {
+      isHome:s.view==='home', isEditor:s.view==='editor',
+      userName, showGreeting, avatarInitial:(userName||'A').trim().charAt(0).toUpperCase(),
+      search:s.search, onSearch:(e)=>this.setState({search:e.target.value}),
+      onNewNote:()=>this.newNote(),
+      sectionTitle, sectionCount: total===1?'1 nota':`${total} notas`,
+      isEmpty:visibleNotes.length===0, emptyMsg, visibleNotes,
+      tabNotas:s.tab==='notas', tabArquivo:s.tab==='arquivo', tabTrashMenu:s.tab==='lixeira',
+
+      notasActive:s.tab==='notas', notasInactive:s.tab!=='notas',
+      arquivoActive:s.tab==='arquivo', arquivoInactive:s.tab!=='arquivo',
+      lixeiraActive:s.tab==='lixeira', lixeiraInactive:s.tab!=='lixeira',
+      goNotas:()=>this.setState({tab:'notas',rowMenuId:null}),
+      goArquivo:()=>this.setState({tab:'arquivo',rowMenuId:null}),
+      goLixeira:()=>this.setState({tab:'lixeira',rowMenuId:null}),
+
+      anyOverlay: s.rowMenuId!=null || s.editorMenuOpen || s.infoOpen,
+      closeAll:()=>this.setState({rowMenuId:null,editorMenuOpen:false,infoOpen:false}),
+
+      editorModeLabel: s.editingId!=null?'Editar nota':'Nova nota',
+      editorTitle:s.editorTitle, editorContent:s.editorContent, contentStyle,
+      onTitleChange:(e)=>this.onTitleChange(e), onContentChange:(e)=>this.onContentChange(e),
+      editorDate: editorNote?editorNote.date:this._today,
+      wordCount:words, charCount:s.editorContent.length,
+      saveStatusLabel: s.saveStatus==='salvando'?'Salvando…':'Salvo',
+      saveDotColor: s.saveStatus==='salvando'?'var(--amber)':'oklch(0.62 0.12 150)',
+      backHome:()=>this.backHome(), saveAndBack:()=>this.saveAndBack(),
+      editorFav:eFav, editorNotFav:!eFav, editorToggleFav:()=>this.editorToggleFav(),
+      infoOpen:s.infoOpen, toggleInfo:()=>this.setState(st=>({infoOpen:!st.infoOpen,editorMenuOpen:false})),
+      editorMenuOpen:s.editorMenuOpen, toggleEditorMenu:()=>this.setState(st=>({editorMenuOpen:!st.editorMenuOpen,infoOpen:false})),
+      editorNoteNormal:eNormal, editorNoteArquivada:eArq, editorNoteApagada:eApag, editorNotApagada:!eApag,
+      editorArchive:()=>this.editorAction('archive'),
+      editorUnarchive:()=>this.editorAction('unarchive'),
+      editorTrash:()=>this.editorAction('trash'),
+      editorRestore:()=>this.editorAction('restore'),
+      editorDelete:()=>this.editorAction('delete')
+    };
+  }
+}
+</script>
+</body>
+</html>

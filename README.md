@@ -215,24 +215,35 @@ classDiagram
 - **EditorView:** Envolvida em `Consumer` para escutar mudanças, botão favorita funcional, bottom sheet de informações
 
 
-## Próximos passos (Roadmap)
+## Roadmap detalhado
 
-**Fase 2 — Melhorias MVP**
-- Busca com filtro em tempo real
-- Aba "Favoritas"
-- Diálogos de confirmação antes de deletar
-- Countdown 30 dias na lixeira
+| Fase | Feature | Status |
+|------|---------|--------|
+| **Fase 2** | Busca por título/conteúdo | ⏳ Planejado |
+| | Aba dedicada "Favoritas" | ⏳ Planejado |
+| | Diálogo de confirmação + Undo de exclusão | ⏳ Planejado |
+| | Countdown de 30 dias na lixeira | ⏳ Planejado |
+| | Melhorias na UI — linguagem de design consistente | ⏳ Planejado |
+| | Contagem de caracteres/palavras na edição | ⏳ Planejado |
+| **Fase 3** | Lock/unlock (modo read-only) | ⏳ Planejado |
+| | Histórico de versões (reverter estado) | ⏳ Planejado |
+| | Suporte a imagens nas anotações | ⏳ Planejado |
+| | Tags/categorias | ⏳ Planejado |
+| | Anotações criptografadas | ⏳ Planejado |
+| | Exportação/backup manual | ⏳ Planejado |
+| | Modo escuro (dark mode) | ⏳ Planejado |
+| **Fase 4** | App Android nativo | ⏳ Planejado |
+| | Autenticação biométrica (digital/face) | ⏳ Planejado |
+| | Sincronização entre dispositivos | ⏳ Planejado |
+| | Offline-first com sync | ⏳ Planejado |
+| | Resolução de conflitos de sincronização | ⏳ Planejado |
 
-**Fase 3 — Features avançadas**
-- Lock/unlock com modo read-only
-- Histórico de versões (git-like)
-- Suporte a imagens
-- Tags/categorias
+### Notas sobre o Roadmap
 
-**Fase 4 — Multiplataforma**
-- App Android nativo
-- Sincronização em nuvem
-- Suporte offline-first com sync
+- **Fase 2** foca em polimento do MVP (UX, busca, confirmações)
+- **Fase 3** adiciona features avançadas (histórico, criptografia, tags)
+- **Fase 4** expande para multiplataforma com sincronização
+- Todas as fases mantêm compatibilidade com versões anteriores
 
 ## Notas de desenvolvimento
 

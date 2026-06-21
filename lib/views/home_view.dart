@@ -128,7 +128,6 @@ class _HomeViewState extends State<HomeView> {
                       ),
 
                     // Botão de opções (três pontos verticais)
-                    // Usa PopupMenuButton que gerencia a posição automaticamente
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       tooltip: 'Mais opções',
@@ -201,22 +200,63 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  /// _showDeleteUndoSnackBar: exibe SnackBar com opção de desfazer exclusão
+  ///
+  /// Fluxo (ESTÁGIO 1 — Soft Delete):
+  /// 1. Mostra SnackBar com mensagem "Nota movida para a lixeira"
+  /// 2. Botão "Desfazer" chama restaurarNota() — reverte o soft delete
+  /// 3. Duração: 4 segundos (consistente com debounce do projeto)
+  ///
+  /// Recebe:
+  /// - viewModel: referência ao ViewModel para chamar restaurarNota()
+  /// - nota: nota que foi soft-deletada
+  void _showDeleteUndoSnackBar(NotaViewModel viewModel, Nota nota) {
+    // Remove qualquer SnackBar anterior que esteja na fila
+    // Isso garante que apenas uma SnackBar é exibida por vez
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    // Exibe SnackBar com opção de desfazer por 4 segundos
+    final snackBar = SnackBar(
+      content: const Text('Nota movida para a lixeira'),
+      duration: const Duration(seconds: 4),
+      // Ação no SnackBar: botão "Desfazer"
+      action: SnackBarAction(
+        label: 'Desfazer',
+        // Quando toca, restaura a nota (reverte o soft delete)
+        onPressed: () {
+          viewModel.restaurarNota(nota);
+        },
+      ),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    // Force dismiss após 4 segundos se o usuário não clicar em Desfazer
+    // (garante que a SnackBar some mesmo se houver rebuilds)
+    Future.delayed(const Duration(seconds: 4), () {
+      // Verifica se o widget ainda está na árvore antes de acessar context
+      // Evita erro se a tela foi fechada durante o delay
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+    });
+  }
+
   /// _buildContextMenuItems: constrói a lista de opções do menu
   ///
-  /// Retorna diferentes opções baseado na aba selecionada:
-  /// - Aba "Anotações": Arquivar, Enviar para lixeira
-  /// - Aba "Arquivo": Desarquivar, Enviar para lixeira
-  /// - Aba "Lixeira": Excluir definitivamente
+  /// O menu muda baseado na aba selecionada:
+  /// - Aba "Anotações": Arquivar, Enviar para lixeira (com SnackBar + Undo)
+  /// - Aba "Arquivo": Desarquivar, Enviar para lixeira (com SnackBar + Undo)
+  /// - Aba "Lixeira": Excluir definitivamente (com Dialog de confirmação)
   ///
-  /// É chamado pelo PopupMenuButton, que gerencia a posição automaticamente
+  /// Implementa o fluxo de exclusão em dois estágios:
+  /// 1. Soft delete (move para lixeira): SnackBar com botão "Desfazer" por 4-5s
+  /// 2. Hard delete (lixeira): Dialog de confirmação antes de executar
   ///
   /// Recebe:
   /// - viewModel: referência ao ViewModel para chamar as ações
   /// - nota: a nota sobre a qual o menu foi aberto
   /// - tabIndex: qual aba está ativa (0 = Anotações, 1 = Arquivo, 2 = Lixeira)
-  ///
-  /// Retorna:
-  /// - Lista de PopupMenuEntry com as opções
   List<PopupMenuEntry<String>> _buildContextMenuItems(
       NotaViewModel viewModel, Nota nota, int tabIndex) {
     if (tabIndex == 0) {
@@ -233,10 +273,13 @@ class _HomeViewState extends State<HomeView> {
         // Separador visual
         const PopupMenuDivider(),
         // Opção: Enviar para lixeira (em vermelho)
+        // ESTÁGIO 1: Soft delete com SnackBar + Undo
         PopupMenuItem(
           onTap: () {
             // Apaga a nota (move para lixeira)
             viewModel.apagarNota(nota);
+            // Mostra SnackBar com opção de desfazer
+            _showDeleteUndoSnackBar(viewModel, nota);
           },
           child: const Text(
             'Enviar para a lixeira',
@@ -258,10 +301,13 @@ class _HomeViewState extends State<HomeView> {
         // Separador visual
         const PopupMenuDivider(),
         // Opção: Enviar para lixeira (em vermelho)
+        // ESTÁGIO 1: Soft delete com SnackBar + Undo
         PopupMenuItem(
           onTap: () {
             // Apaga a nota (move para lixeira)
             viewModel.apagarNota(nota);
+            // Mostra SnackBar com opção de desfazer
+            _showDeleteUndoSnackBar(viewModel, nota);
           },
           child: const Text(
             'Enviar para a lixeira',
@@ -271,12 +317,13 @@ class _HomeViewState extends State<HomeView> {
       ];
     } else {
       // Aba "Lixeira": notas apagadas
+      // ESTÁGIO 2: Hard delete com Dialog de confirmação
       return <PopupMenuEntry<String>>[
         // Opção: Excluir definitivamente (em vermelho)
         PopupMenuItem(
           onTap: () {
-            // Exclui permanentemente do banco
-            viewModel.deletarPermanentemente(nota);
+            // Abre Dialog de confirmação ANTES de executar a ação destrutiva
+            _showDeleteConfirmationDialog(context, viewModel, nota);
           },
           child: const Text(
             'Excluir definitivamente',
@@ -285,5 +332,67 @@ class _HomeViewState extends State<HomeView> {
         ),
       ];
     }
+  }
+
+  /// _showDeleteConfirmationDialog: exibe Dialog de confirmação antes de hard delete
+  ///
+  /// Fluxo:
+  /// 1. Abre Dialog perguntando se tem certeza
+  /// 2. Se confirma: chama deletarPermanentemente() e fecha a nota
+  /// 3. Se cancela: fecha o Dialog, nota permanece na lixeira
+  ///
+  /// Recebe:
+  /// - context: contexto do Flutter
+  /// - viewModel: referência ao ViewModel
+  /// - nota: nota a ser excluída permanentemente
+  void _showDeleteConfirmationDialog(
+      BuildContext context, NotaViewModel viewModel, Nota nota) {
+    // showDialog: exibe um Dialog modal
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // AlertDialog: Dialog padrão do Material Design
+        return AlertDialog(
+          // Título do Dialog
+          title: const Text('Excluir permanentemente?'),
+          // Conteúdo/mensagem principal
+          content: const Text(
+            'Esta ação não pode ser desfeita. Deseja excluir permanentemente esta nota?',
+          ),
+          // Botões do Dialog
+          actions: [
+            // Botão Cancelar (ação segura, padrão)
+            TextButton(
+              onPressed: () {
+                // Fecha o Dialog sem fazer nada
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            // Botão Excluir (ação destrutiva, em vermelho)
+            TextButton(
+              onPressed: () {
+                // Executa a exclusão permanente
+                viewModel.deletarPermanentemente(nota);
+                // Fecha o Dialog
+                Navigator.of(context).pop();
+                // Mostra SnackBar confirmando a exclusão
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Nota excluída permanentemente'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              // Estilo para deixar o texto vermelho (destrutivo)
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
