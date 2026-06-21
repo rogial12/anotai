@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'ui/views/home_view.dart';
+import 'ui/styles/app_theme.dart';
 
 // Ponto de entrada do app — equivalente ao main() em Java
 void main() async {
@@ -25,7 +26,21 @@ class AnotaiApp extends StatelessWidget {
         title: 'Anotai',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+          scaffoldBackgroundColor: AppTheme.paper,
+          colorScheme: ColorScheme.light(
+            primary: AppTheme.accent,
+            onPrimary: AppTheme.accentFg,
+            surface: AppTheme.card,
+            onSurface: AppTheme.ink,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppTheme.card,
+            foregroundColor: AppTheme.ink,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+          ),
+          dividerColor: AppTheme.line,
+          cardColor: AppTheme.card,
         ),
         home: const HomeView(),
       ),
