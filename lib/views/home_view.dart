@@ -77,7 +77,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     child: Center(
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 920),
+                        constraints: const BoxConstraints(maxWidth: AppTheme.maxWidthListContent),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -110,8 +110,8 @@ class _HomeViewState extends State<HomeView> {
               child: Container(
                 decoration: BoxDecoration(
                   color: AppTheme.card,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: AppTheme.shadowMedium,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusDock),
+                  boxShadow: AppTheme.shadowDock,
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 child: Row(
@@ -127,7 +127,7 @@ class _HomeViewState extends State<HomeView> {
                             color: _selectedTabIndex == index
                                 ? AppTheme.accentWeak
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(13),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusDockChip),
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -146,16 +146,9 @@ class _HomeViewState extends State<HomeView> {
                               const SizedBox(width: 6),
                               Text(
                                 tabLabels[index],
-                                style: TextStyle(
-                                  fontFamily: 'Hanken Grotesk',
-                                  fontSize: 14,
-                                  fontWeight: _selectedTabIndex == index
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                  color: _selectedTabIndex == index
-                                      ? AppTheme.accent
-                                      : AppTheme.muted,
-                                ),
+                                style: _selectedTabIndex == index
+                                    ? AppTheme.dockLabelActive
+                                    : AppTheme.dockLabelInactive,
                               ),
                             ],
                           ),
@@ -176,10 +169,10 @@ class _HomeViewState extends State<HomeView> {
     return Container(
       color: AppTheme.card,
       padding: EdgeInsets.only(
-        left: _clampPadding(20, 4, 48),
-        right: _clampPadding(20, 4, 48),
-        top: _clampPadding(22, 3, 34),
-        bottom: 16,
+        left: _clampPadding(AppTheme.paddingHeaderHorizontal, 4, 48),
+        right: _clampPadding(AppTheme.paddingHeaderHorizontal, 4, 48),
+        top: _clampPadding(AppTheme.paddingHeaderTop, 3, 34),
+        bottom: AppTheme.paddingHeaderBottom.toDouble(),
       ),
       child: SafeArea(
         bottom: false,
@@ -189,20 +182,14 @@ class _HomeViewState extends State<HomeView> {
               children: [
                 Text(
                   'Anotai',
-                  style: TextStyle(
-                    fontFamily: 'Bricolage Grotesque',
-                    fontSize: _clampFontSize(27, 3, 35),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.025,
-                    color: AppTheme.ink,
-                  ),
+                  style: AppTheme.wordmark(fontSize: _clampFontSize(27, 3, 35)),
                 ),
                 const Spacer(),
                 Container(
                   width: _clampPadding(170, 22, 250),
                   decoration: BoxDecoration(
                     color: AppTheme.card,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusPill),
                     border: Border.all(color: AppTheme.line, width: 1),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -215,22 +202,14 @@ class _HomeViewState extends State<HomeView> {
                         size: 18,
                       ),
                       hintText: 'Buscar',
-                      hintStyle: const TextStyle(
-                        fontFamily: 'Hanken Grotesk',
-                        fontSize: 14.5,
-                        color: AppTheme.faint,
-                      ),
+                      hintStyle: AppTheme.menuItem.copyWith(color: AppTheme.faint),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 0,
                         vertical: 0,
                       ),
                     ),
-                    style: const TextStyle(
-                      fontFamily: 'Hanken Grotesk',
-                      fontSize: 14.5,
-                      color: AppTheme.ink,
-                    ),
+                    style: AppTheme.menuItem,
                     onChanged: (value) {
                       // TODO: Implementar filtro de busca na Fase 2
                     },
@@ -262,12 +241,7 @@ class _HomeViewState extends State<HomeView> {
                   child: Center(
                     child: Text(
                       'I',
-                      style: TextStyle(
-                        fontFamily: 'Bricolage Grotesque',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.accent,
-                      ),
+                      style: AppTheme.wordmark(fontSize: 18).copyWith(color: AppTheme.accent),
                     ),
                   ),
                 ),
@@ -278,12 +252,7 @@ class _HomeViewState extends State<HomeView> {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Olá, Igor',
-                style: const TextStyle(
-                  fontFamily: 'Hanken Grotesk',
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w400,
-                  color: AppTheme.muted,
-                ),
+                style: AppTheme.greeting,
               ),
             ),
           ],
@@ -298,26 +267,11 @@ class _HomeViewState extends State<HomeView> {
       children: [
         Row(
           children: [
-            Text(
-              sectionName,
-              style: const TextStyle(
-                fontFamily: 'Bricolage Grotesque',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.01,
-                color: AppTheme.ink,
-              ),
-            ),
+            Text(sectionName, style: AppTheme.sectionTitle),
             const SizedBox(width: 8),
             Text(
               '$count ${count == 1 ? 'nota' : 'notas'}',
-              style: const TextStyle(
-                fontFamily: 'Hanken Grotesk',
-                fontSize: 13.5,
-                fontWeight: FontWeight.w400,
-                color: AppTheme.faint,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
+              style: AppTheme.sectionCounter,
             ),
           ],
         ),
@@ -350,12 +304,7 @@ class _HomeViewState extends State<HomeView> {
             const SizedBox(height: 16),
             Text(
               messages[tabIndex],
-              style: const TextStyle(
-                fontFamily: 'Hanken Grotesk',
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: AppTheme.muted,
-              ),
+              style: AppTheme.notePreview.copyWith(color: AppTheme.muted),
             ),
           ],
         ),
@@ -388,7 +337,7 @@ class _HomeViewState extends State<HomeView> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppTheme.card,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(AppTheme.radiusListItem),
         border: Border.all(color: AppTheme.line, width: 1),
       ),
       child: Material(
@@ -400,9 +349,12 @@ class _HomeViewState extends State<HomeView> {
               MaterialPageRoute(builder: (_) => const EditorView()),
             );
           },
-          borderRadius: BorderRadius.circular(13),
+          borderRadius: BorderRadius.circular(AppTheme.radiusListItem),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 17),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppTheme.paddingListItemHorizontal.toDouble(),
+              vertical: AppTheme.paddingListItemVertical.toDouble(),
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -423,13 +375,7 @@ class _HomeViewState extends State<HomeView> {
                           Expanded(
                             child: Text(
                               nota.titulo.isEmpty ? '(sem título)' : nota.titulo,
-                              style: const TextStyle(
-                                fontFamily: 'Bricolage Grotesque',
-                                fontSize: 16.5,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: -0.005,
-                                color: AppTheme.ink,
-                              ),
+                              style: AppTheme.noteTitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -439,13 +385,7 @@ class _HomeViewState extends State<HomeView> {
                       const SizedBox(height: 4),
                       Text(
                         nota.conteudo,
-                        style: const TextStyle(
-                          fontFamily: 'Hanken Grotesk',
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w400,
-                          color: AppTheme.muted,
-                          height: 1.5,
-                        ),
+                        style: AppTheme.notePreview,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -458,13 +398,7 @@ class _HomeViewState extends State<HomeView> {
                   children: [
                     Text(
                       '${nota.criadaEm.day} ${_monthName(nota.criadaEm.month)}',
-                      style: const TextStyle(
-                        fontFamily: 'Hanken Grotesk',
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w400,
-                        color: AppTheme.faint,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
+                      style: AppTheme.dateMeta,
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -480,8 +414,8 @@ class _HomeViewState extends State<HomeView> {
                             iconSize: 18,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
-                              minWidth: 36,
-                              minHeight: 36,
+                              minWidth: AppTheme.minTouchTargetSize,
+                              minHeight: AppTheme.minTouchTargetSize,
                             ),
                             tooltip: 'Restaurar',
                           )
@@ -497,8 +431,8 @@ class _HomeViewState extends State<HomeView> {
                             iconSize: 18,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
-                              minWidth: 36,
-                              minHeight: 36,
+                              minWidth: AppTheme.minTouchTargetSize,
+                              minHeight: AppTheme.minTouchTargetSize,
                             ),
                             tooltip: nota.isFavorita
                                 ? 'Remover de favoritos'
@@ -510,8 +444,8 @@ class _HomeViewState extends State<HomeView> {
                           iconSize: 18,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 36,
+                            minWidth: AppTheme.minTouchTargetSize,
+                            minHeight: AppTheme.minTouchTargetSize,
                           ),
                           itemBuilder: (BuildContext context) {
                             return _buildContextMenuItems(viewModel, nota);

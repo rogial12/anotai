@@ -144,9 +144,9 @@ class _EditorViewState extends State<EditorView> {
                   width: 270,
                   decoration: BoxDecoration(
                     color: AppTheme.card,
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMenu),
                     border: Border.all(color: AppTheme.line, width: 1),
-                    boxShadow: AppTheme.shadowMedium,
+                    boxShadow: AppTheme.shadowPopover,
                   ),
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -155,13 +155,7 @@ class _EditorViewState extends State<EditorView> {
                     children: [
                       Text(
                         'Informações da nota',
-                        style: const TextStyle(
-                          fontFamily: 'Bricolage Grotesque',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.005,
-                          color: AppTheme.ink,
-                        ),
+                        style: AppTheme.sectionTitle.copyWith(fontSize: 16),
                       ),
                       const SizedBox(height: 12),
                       Container(height: 1, color: AppTheme.line2),
@@ -177,12 +171,7 @@ class _EditorViewState extends State<EditorView> {
                           Expanded(
                             child: Text(
                               _formatDate(notaEmEdicao.criadaEm),
-                              style: const TextStyle(
-                                fontFamily: 'Hanken Grotesk',
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w400,
-                                color: AppTheme.muted,
-                              ),
+                              style: AppTheme.sectionCounter.copyWith(color: AppTheme.muted),
                             ),
                           ),
                         ],
@@ -199,12 +188,7 @@ class _EditorViewState extends State<EditorView> {
                           Expanded(
                             child: Text(
                               '${_getWordCount()} palavra${_getWordCount() == 1 ? '' : 's'}',
-                              style: const TextStyle(
-                                fontFamily: 'Hanken Grotesk',
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w400,
-                                color: AppTheme.muted,
-                              ),
+                              style: AppTheme.sectionCounter.copyWith(color: AppTheme.muted),
                             ),
                           ),
                         ],
@@ -221,12 +205,7 @@ class _EditorViewState extends State<EditorView> {
                           Expanded(
                             child: Text(
                               '${_getCharCount()} caractere${_getCharCount() == 1 ? '' : 's'}',
-                              style: const TextStyle(
-                                fontFamily: 'Hanken Grotesk',
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w400,
-                                color: AppTheme.muted,
-                              ),
+                              style: AppTheme.sectionCounter.copyWith(color: AppTheme.muted),
                             ),
                           ),
                         ],
@@ -341,7 +320,7 @@ class _EditorViewState extends State<EditorView> {
                     ),
                     child: Center(
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
+                        constraints: const BoxConstraints(maxWidth: AppTheme.maxWidthEditorContent),
                         child: Column(
                           children: [
                             // Textarea do título (auto-height)
@@ -353,22 +332,9 @@ class _EditorViewState extends State<EditorView> {
                                 hintText: isCreating ? 'Título' : null,
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.zero,
-                                hintStyle: TextStyle(
-                                  fontFamily: 'Bricolage Grotesque',
-                                  fontSize: _clampFontSize(25, 3.2, 33),
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.02,
-                                  color: AppTheme.faint,
-                                ),
+                                hintStyle: AppTheme.editorTitle(fontSize: _clampFontSize(25, 3.2, 33)).copyWith(color: AppTheme.faint),
                               ),
-                              style: TextStyle(
-                                fontFamily: 'Bricolage Grotesque',
-                                fontSize: _clampFontSize(25, 3.2, 33),
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -0.02,
-                                height: 1.2,
-                                color: AppTheme.ink,
-                              ),
+                              style: AppTheme.editorTitle(fontSize: _clampFontSize(25, 3.2, 33)),
                             ),
 
                             const SizedBox(height: 12),
@@ -379,24 +345,12 @@ class _EditorViewState extends State<EditorView> {
                                 if (!isCreating)
                                   Text(
                                     _formatDate(notaEmEdicao.criadaEm),
-                                    style: const TextStyle(
-                                      fontFamily: 'Hanken Grotesk',
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppTheme.faint,
-                                      fontFeatures: [FontFeature.tabularFigures()],
-                                    ),
+                                    style: AppTheme.dateMeta,
                                   ),
                                 if (!isCreating) const SizedBox(width: 16),
                                 Text(
                                   '${_getWordCount()} palavra${_getWordCount() == 1 ? '' : 's'}',
-                                  style: const TextStyle(
-                                    fontFamily: 'Hanken Grotesk',
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppTheme.faint,
-                                    fontFeatures: [FontFeature.tabularFigures()],
-                                  ),
+                                  style: AppTheme.dateMeta,
                                 ),
                               ],
                             ),
@@ -419,21 +373,9 @@ class _EditorViewState extends State<EditorView> {
                                     : null,
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.zero,
-                                hintStyle: const TextStyle(
-                                  fontFamily: 'Hanken Grotesk',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.78,
-                                  color: AppTheme.faint,
-                                ),
+                                hintStyle: AppTheme.editorBodySans.copyWith(color: AppTheme.faint),
                               ),
-                              style: const TextStyle(
-                                fontFamily: 'Hanken Grotesk',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400,
-                                height: 1.78,
-                                color: AppTheme.ink,
-                              ),
+                              style: AppTheme.editorBodySans,
                             ),
 
                             const SizedBox(height: 60),
@@ -456,6 +398,7 @@ class _EditorViewState extends State<EditorView> {
                     border: Border(
                       bottom: BorderSide(color: AppTheme.line, width: 1),
                     ),
+                    boxShadow: AppTheme.shadowRowMenu,
                   ),
                   child: SafeArea(
                     bottom: false,
@@ -470,7 +413,7 @@ class _EditorViewState extends State<EditorView> {
                           Container(
                             decoration: BoxDecoration(
                               border: Border.all(color: AppTheme.line, width: 1),
-                              borderRadius: BorderRadius.circular(9),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusIconButton),
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.arrow_back),
@@ -479,8 +422,8 @@ class _EditorViewState extends State<EditorView> {
                               onPressed: _saveAndClose,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(
-                                minWidth: 36,
-                                minHeight: 36,
+                                minWidth: AppTheme.minTouchTargetSize,
+                                minHeight: AppTheme.minTouchTargetSize,
                               ),
                             ),
                           ),
@@ -555,8 +498,8 @@ class _EditorViewState extends State<EditorView> {
                               },
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(
-                                minWidth: 36,
-                                minHeight: 36,
+                                minWidth: AppTheme.minTouchTargetSize,
+                                minHeight: AppTheme.minTouchTargetSize,
                               ),
                             ),
 
@@ -570,8 +513,8 @@ class _EditorViewState extends State<EditorView> {
                             },
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
-                              minWidth: 36,
-                              minHeight: 36,
+                              minWidth: AppTheme.minTouchTargetSize,
+                              minHeight: AppTheme.minTouchTargetSize,
                             ),
                             tooltip: 'Informações',
                           ),
@@ -583,8 +526,8 @@ class _EditorViewState extends State<EditorView> {
                             color: AppTheme.card,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
-                              minWidth: 36,
-                              minHeight: 36,
+                              minWidth: AppTheme.minTouchTargetSize,
+                              minHeight: AppTheme.minTouchTargetSize,
                             ),
                             itemBuilder: (BuildContext context) {
                               return _buildContextMenuItems();
@@ -602,6 +545,9 @@ class _EditorViewState extends State<EditorView> {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 14,
                                 vertical: 9,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(AppTheme.radiusPrimaryButton),
                               ),
                             ),
                           ),

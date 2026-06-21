@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
@@ -6,11 +7,17 @@ import 'theme/app_theme.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'views/home_view.dart';
 
-// Ponto de entrada do app — equivalente ao main() em Java
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('notas');
+  // Pré-carrega as fontes do Google Fonts para evitar FOUT (flash de fonte incorreta)
+  await Future.wait([
+    GoogleFonts.pendingFonts([
+      GoogleFonts.bricolageGrotesque(),
+      GoogleFonts.hankenGrotesk(),
+    ]),
+  ]);
   runApp(const AnotaiApp());
 }
 
