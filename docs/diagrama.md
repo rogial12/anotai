@@ -51,25 +51,40 @@ classDiagram
         +deletar(String id)
     }
 
-    class HomeView {
-        -int _selectedTabIndex
-        -NotaViewModel viewModel
-        +build()
-        -_buildContextMenuItems()
+    namespace ui_views {
+        class HomeView {
+            -int _selectedTabIndex
+            -NotaViewModel viewModel
+            +build()
+            -_buildContextMenuItems()
+        }
+
+        class EditorView {
+            -TextEditingController _titleController
+            -TextEditingController _contentController
+            -Timer? _debounceTimer
+            -bool _hasChanges
+            -NotaViewModel viewModel
+            +build()
+            -_onTextChanged()
+            -_saveAutomatically()
+            -_saveAndClose()
+            -_showInfoBottomSheet()
+            -_buildContextMenuItems()
+        }
     }
 
-    class EditorView {
-        -TextEditingController _titleController
-        -TextEditingController _contentController
-        -Timer? _debounceTimer
-        -bool _hasChanges
-        -NotaViewModel viewModel
-        +build()
-        -_onTextChanged()
-        -_saveAutomatically()
-        -_saveAndClose()
-        -_showInfoBottomSheet()
-        -_buildContextMenuItems()
+    namespace ui_components_home {
+        class HomeHeader["HomeHeader (placeholder)"]
+        class DockBar["DockBar (placeholder)"]
+        class NoteTile["NoteTile (placeholder)"]
+        class SectionHeader["SectionHeader (placeholder)"]
+        class EmptyState["EmptyState (placeholder)"]
+    }
+
+    namespace ui_components_editor {
+        class EditorHeader["EditorHeader (placeholder)"]
+        class InfoPopover["InfoPopover (placeholder)"]
     }
 
     NotaViewModel --> NotaRepository : usa

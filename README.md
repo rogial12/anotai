@@ -59,7 +59,11 @@ lib/
 ├── models/         # Nota: classe de dados com serialização
 ├── repositories/   # NotaRepository (interface) + LocalNotaRepository (Hive)
 ├── viewmodels/     # NotaViewModel: lógica de estado, ChangeNotifier
-├── views/          # HomeView, EditorView: UI com Consumer<ViewModel>
+├── ui/             # Tudo relacionado à interface
+│   ├── views/      # HomeView, EditorView: orquestram a tela
+│   ├── components/ # Widgets reutilizáveis (home/ e editor/)
+│   ├── styles/     # AppTheme: tokens de design centralizados
+│   └── utils/      # Funções auxiliares puras (formatadores, etc.)
 └── main.dart       # Inicialização (Hive, Provider, app raiz)
 ```
 
@@ -104,9 +108,15 @@ anotai/
 │   │   ├── nota_repository.dart      # Interface (contrato)
 │   │   └── local_nota_repository.dart # Implementação Hive
 │   ├── viewmodels/nota_viewmodel.dart # Lógica + estado reativo
-│   ├── views/
-│   │   ├── home_view.dart            # Tela principal (3 abas)
-│   │   └── editor_view.dart          # Tela de criação/edição
+│   ├── ui/
+│   │   ├── views/
+│   │   │   ├── home_view.dart        # Tela principal (3 abas)
+│   │   │   └── editor_view.dart      # Tela de criação/edição
+│   │   ├── components/
+│   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, etc.
+│   │   │   └── editor/               # EditorHeader, InfoPopover
+│   │   ├── styles/app_theme.dart     # Tokens de design (cores, tipografia, etc.)
+│   │   └── utils/formatters.dart     # Funções auxiliares puras
 │   └── main.dart                     # Entry point
 ├── pubspec.yaml                      # Dependências (hive, provider)
 ├── docs/diagrama.md                  # Diagrama de classes (Mermaid)
@@ -168,25 +178,40 @@ classDiagram
         +deletar(String id)
     }
 
-    class HomeView {
-        -int _selectedTabIndex
-        -NotaViewModel viewModel
-        +build()
-        -_buildContextMenuItems()
+    namespace ui_views {
+        class HomeView {
+            -int _selectedTabIndex
+            -NotaViewModel viewModel
+            +build()
+            -_buildContextMenuItems()
+        }
+
+        class EditorView {
+            -TextEditingController _titleController
+            -TextEditingController _contentController
+            -Timer? _debounceTimer
+            -bool _hasChanges
+            -NotaViewModel viewModel
+            +build()
+            -_onTextChanged()
+            -_saveAutomatically()
+            -_saveAndClose()
+            -_showInfoBottomSheet()
+            -_buildContextMenuItems()
+        }
     }
 
-    class EditorView {
-        -TextEditingController _titleController
-        -TextEditingController _contentController
-        -Timer? _debounceTimer
-        -bool _hasChanges
-        -NotaViewModel viewModel
-        +build()
-        -_onTextChanged()
-        -_saveAutomatically()
-        -_saveAndClose()
-        -_showInfoBottomSheet()
-        -_buildContextMenuItems()
+    namespace ui_components_home {
+        class HomeHeader["HomeHeader (placeholder)"]
+        class DockBar["DockBar (placeholder)"]
+        class NoteTile["NoteTile (placeholder)"]
+        class SectionHeader["SectionHeader (placeholder)"]
+        class EmptyState["EmptyState (placeholder)"]
+    }
+
+    namespace ui_components_editor {
+        class EditorHeader["EditorHeader (placeholder)"]
+        class InfoPopover["InfoPopover (placeholder)"]
     }
 
     NotaViewModel --> NotaRepository : usa
