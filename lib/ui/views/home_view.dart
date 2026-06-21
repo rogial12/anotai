@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/nota_viewmodel.dart';
-import '../models/nota.dart';
+import '../../viewmodels/nota_viewmodel.dart';
+import '../../models/nota.dart';
 import 'editor_view.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.

@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
 import 'viewmodels/nota_viewmodel.dart';
-import 'views/home_view.dart';
+import 'ui/views/home_view.dart';
 
 // Ponto de entrada do app — equivalente ao main() em Java
 void main() async {

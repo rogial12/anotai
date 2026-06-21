@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import '../models/nota.dart';
-import '../viewmodels/nota_viewmodel.dart';
+import '../../viewmodels/nota_viewmodel.dart';
 
 /// EditorView é a tela onde o usuário cria e edita notas.
 ///
