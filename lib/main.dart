@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
+import 'theme/app_theme.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'views/home_view.dart';
 
@@ -24,9 +25,7 @@ class AnotaiApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Anotai',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        ),
+        theme: AppTheme.lightTheme,
         home: const HomeView(),
       ),
     );

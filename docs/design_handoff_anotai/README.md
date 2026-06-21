@@ -258,3 +258,6 @@ leitura do editor).
 - `Anotai.dc.html` — protótipo de referência (HomeView + EditorView + menus + lógica).
 - `spec_original_v1.md` — especificação funcional original (fonte de verdade do comportamento).
 - `README.md` — este documento.
+- `screenshots/01-home-anotacoes.png` — HomeView, aba Anotações.
+- `screenshots/02-home-menu-opcoes.png` — HomeView com o menu de opções da nota aberto.
+- `screenshots/03-editor.png` — EditorView editando uma nota.
