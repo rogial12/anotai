@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
-import 'theme/app_theme.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'views/home_view.dart';
 
@@ -32,7 +31,9 @@ class AnotaiApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Anotai',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        ),
         home: const HomeView(),
       ),
     );
