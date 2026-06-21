@@ -145,7 +145,73 @@ class AppTheme {
         color: AppTheme.ink,
       );
 
-  // TODO: adicionar tokens de border radius
-  // TODO: adicionar tokens de sombra
+  // ---------------------------------------------------------------------------
+  // Border Radius
+  // Fonte: docs/design_handoff_anotai/README.md — seção "Raios, sombras, espaçamento"
+  // ---------------------------------------------------------------------------
+
+  static const double radiusButton    = 11;  // botões primários
+  static const double radiusIcon      = 9;   // ícones-botão
+  static const double radiusTile      = 13;  // linhas da lista
+  static const double radiusMenu      = 13;  // menus e popovers
+  static const double radiusDock      = 18;  // dock flutuante
+  static const double radiusDockChip  = 13;  // chip ativo no dock
+  static const double radiusPill      = 999; // busca e avatar (pílula)
+
+  // ---------------------------------------------------------------------------
+  // Sombras
+  // Fonte: docs/design_handoff_anotai/README.md — seção "Raios, sombras, espaçamento"
+  // Cores oklch convertidas para HEX com alpha embutido no prefixo (0xAARRGGBB):
+  //   oklch(0.5 0.12 48) ≈ #8B4A2A (terracota escuro)
+  //   oklch(0.4 0.03 60) ≈ #3D3830 (cinza quente escuro)
+  // Alpha: 0.25→0x40  0.16→0x29  0.08→0x14  0.18→0x2E  0.14→0x24  0.07→0x12
+  // ---------------------------------------------------------------------------
+
+  // Botão primário
+  static const List<BoxShadow> shadowButton = [
+    BoxShadow(
+      color: Color(0x408B4A2A),
+      offset: Offset(0, 1),
+      blurRadius: 2,
+    ),
+  ];
+
+  // Menu de linha (PopupMenu / row menu)
+  static const List<BoxShadow> shadowMenu = [
+    BoxShadow(
+      color: Color(0x293D3830),
+      offset: Offset(0, 12),
+      blurRadius: 34,
+    ),
+    BoxShadow(
+      color: Color(0x143D3830),
+      offset: Offset(0, 2),
+      blurRadius: 6,
+    ),
+  ];
+
+  // Popover do editor (informações)
+  static const List<BoxShadow> shadowPopover = [
+    BoxShadow(
+      color: Color(0x2E3D3830),
+      offset: Offset(0, 14),
+      blurRadius: 36,
+    ),
+  ];
+
+  // Dock flutuante
+  static const List<BoxShadow> shadowDock = [
+    BoxShadow(
+      color: Color(0x243D3830),
+      offset: Offset(0, 10),
+      blurRadius: 30,
+    ),
+    BoxShadow(
+      color: Color(0x123D3830),
+      offset: Offset(0, 2),
+      blurRadius: 6,
+    ),
+  ];
+
   // TODO: adicionar tokens de espaçamento
 }
