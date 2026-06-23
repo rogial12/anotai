@@ -4,6 +4,7 @@ import 'dart:async';
 import '../../viewmodels/nota_viewmodel.dart';
 import '../components/editor/editor_header.dart';
 import '../styles/app_theme.dart';
+import '../utils/formatters.dart';
 
 /// EditorView é a tela onde o usuário cria e edita notas.
 ///
@@ -171,75 +172,55 @@ class _EditorViewState extends State<EditorView> {
     }
   }
 
-  /// _showInfoBottomSheet: exibe uma bandeja na base da tela com informações da nota
-  ///
-  /// Mostra:
-  /// - Data de criação (formatada como DD-MM-AAAA)
-  ///
-  /// Fluxo:
-  /// 1. Recupera a nota sendo editada
-  /// 2. Se for null (criando), não mostra nada
-  /// 3. Se tiver nota, exibe um BottomSheet com os dados formatados
-  void _showInfoBottomSheet(BuildContext context) {
-    // Recupera a nota que está sendo editada
-    final notaEmEdicao = _viewModel.notaEmEdicao;
+  void _showInfoDialog(BuildContext context) {
+    final nota = _viewModel.notaEmEdicao;
+    if (nota == null) return;
 
-    // Se não há nota (criando), não mostra a bandeja
-    if (notaEmEdicao == null) {
-      return;
-    }
+    final totalText = '${_titleController.text} ${_contentController.text}';
+    final words = wordCount(totalText);
+    final chars = charCount(_titleController.text + _contentController.text);
 
-    // Formata a data de criação no padrão DD-MM-AAAA
-    final dataFormatada =
-        '${notaEmEdicao.criadaEm.day.toString().padLeft(2, '0')}-${notaEmEdicao.criadaEm.month.toString().padLeft(2, '0')}-${notaEmEdicao.criadaEm.year}';
-
-    // Exibe a bandeja na base da tela
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      // builder: constrói o conteúdo da bandeja
-      builder: (BuildContext context) {
-        return Padding(
-          // Padding: espaçamento ao redor do conteúdo
-          padding: const EdgeInsets.all(16),
-          // Column: empilha widgets verticalmente
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 340),
+          decoration: BoxDecoration(
+            color: AppTheme.card,
+            borderRadius: BorderRadius.circular(AppTheme.radiusMenu),
+            boxShadow: AppTheme.shadowPopover,
+          ),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            // mainAxisSize: deixar a coluna compacta (ocupar só o espaço necessário)
             mainAxisSize: MainAxisSize.min,
-            // crossAxisAlignment: alinhar à esquerda
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Título da bandeja de informações
-              const Text(
-                'Informações da nota',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              // Espaçamento
-              const SizedBox(height: 16),
-              // Data de criação
-              Text(
-                'Criada em: $dataFormatada',
-                style: const TextStyle(fontSize: 16),
-              ),
-              // Espaçamento
-              const SizedBox(height: 16),
-              // Botão para fechar a bandeja
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Fecha a bandeja
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Fechar'),
-                ),
-              ),
+              Text('Informações', style: AppTheme.sectionTitle),
+              const SizedBox(height: 20),
+              _infoRow('Criada em', formatDate(nota.criadaEm)),
+              const SizedBox(height: 12),
+              _infoRow('Última edição', formatDate(nota.atualizadaEm)),
+              const SizedBox(height: 12),
+              _infoRow('Palavras', '$words'),
+              const SizedBox(height: 12),
+              _infoRow('Caracteres', '$chars'),
             ],
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.meta),
+        Text(value, style: AppTheme.notePreview.copyWith(color: AppTheme.ink)),
+      ],
     );
   }
 
@@ -266,7 +247,7 @@ class _EditorViewState extends State<EditorView> {
 
     // Item "Informações da nota" — sempre presente quando há nota salva
     final infoItem = PopupMenuItem<String>(
-      onTap: () => _showInfoBottomSheet(context),
+      onTap: () => _showInfoDialog(context),
       child: const Text('Informações da nota'),
     );
 
