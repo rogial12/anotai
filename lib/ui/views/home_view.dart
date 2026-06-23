@@ -6,6 +6,7 @@ import 'editor_view.dart';
 import '../components/home/empty_state.dart';
 import '../components/home/section_header.dart';
 import '../components/home/note_tile.dart';
+import '../components/home/dock_bar.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.
 ///
@@ -101,36 +102,13 @@ class _HomeViewState extends State<HomeView> {
           );
         },
       ),
-      // BottomNavigationBar: barra com abas na base da tela
-      bottomNavigationBar: BottomNavigationBar(
-        // currentIndex: qual aba está selecionada
-        currentIndex: _selectedTabIndex,
-        // onTap: chamado quando o usuário toca numa aba
-        onTap: (index) {
-          // Atualiza o índice da aba selecionada
-          // setState reconstrói o widget com o novo índice
+      bottomNavigationBar: DockBar(
+        selectedIndex: _selectedTabIndex,
+        onTabChanged: (index) {
           setState(() {
             _selectedTabIndex = index;
           });
         },
-        // items: lista de abas
-        items: const [
-          // Aba 1: Anotações
-          BottomNavigationBarItem(
-            icon: Icon(Icons.note),
-            label: 'Anotações',
-          ),
-          // Aba 2: Arquivo
-          BottomNavigationBarItem(
-            icon: Icon(Icons.archive),
-            label: 'Arquivo',
-          ),
-          // Aba 3: Lixeira
-          BottomNavigationBarItem(
-            icon: Icon(Icons.delete),
-            label: 'Lixeira',
-          ),
-        ],
       ),
       // FAB: botão flutuante para criar nova nota
       floatingActionButton: FloatingActionButton(
