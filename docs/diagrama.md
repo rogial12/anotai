@@ -69,22 +69,52 @@ classDiagram
             -_onTextChanged()
             -_saveAutomatically()
             -_saveAndClose()
-            -_showInfoBottomSheet()
+            -_showInfoDialog()
             -_buildContextMenuItems()
         }
     }
 
     namespace ui_components_home {
-        class HomeHeader["HomeHeader (placeholder)"]
-        class DockBar["DockBar (placeholder)"]
-        class NoteTile["NoteTile (placeholder)"]
-        class SectionHeader["SectionHeader (placeholder)"]
-        class EmptyState["EmptyState (placeholder)"]
+        class HomeHeader {
+            +VoidCallback onSettings
+        }
+        class DockBar {
+            +int selectedIndex
+            +ValueChanged onTabChanged
+        }
+        class NoteTile {
+            +Nota nota
+            +bool isLixeira
+            +VoidCallback onTap
+            +VoidCallback onToggleFavorita
+            +VoidCallback? onRestore
+            +List menuItems
+        }
+        class SectionHeader {
+            +String title
+            +int count
+        }
+        class EmptyState {
+            +int tabIndex
+        }
     }
 
     namespace ui_components_editor {
-        class EditorHeader["EditorHeader (placeholder)"]
-        class InfoPopover["InfoPopover (placeholder)"]
+        class EditorHeader {
+            +String title
+            +bool isFavorita
+            +VoidCallback onBack
+            +VoidCallback onToggleFavorita
+            +List menuItems
+        }
+    }
+
+    namespace ui_utils {
+        class Formatters {
+            +formatDate(DateTime) String
+            +wordCount(String) int
+            +charCount(String) int
+        }
     }
 
     namespace ui_styles {

@@ -32,8 +32,10 @@ arquitetura de software, boas práticas e versionamento com Git.
 ✅ **Interface**
 - Três abas: Anotações, Arquivo, Lixeira
 - Menu de contexto dinâmico por aba
-- Botão de informações com data de criação (DD-MM-AAAA)
+- Data de criação exibida em cada nota na lista
+- Dialog de informações da nota (criação, última edição, palavras, caracteres)
 - Indicador visual de favoritas (estrela)
+- Design system centralizado (`AppTheme`) com cores, tipografia, raios, sombras e espaçamentos
 
 **Planejado para o futuro (Fase 2+)**
 - Busca por título ou conteúdo
@@ -116,126 +118,14 @@ anotai/
 │   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, etc.
 │   │   │   └── editor/               # EditorHeader, InfoPopover
 │   │   ├── styles/app_theme.dart     # Tokens implementados: 16 cores, 13 estilos, raios, sombras, espaçamentos
-│   │   └── utils/formatters.dart     # Funções auxiliares puras (placeholder)
+│   │   └── utils/formatters.dart     # Funções auxiliares puras: formatDate, wordCount, charCount
 │   └── main.dart                     # Entry point
 ├── pubspec.yaml                      # Dependências (hive, provider)
 ├── docs/diagrama.md                  # Diagrama de classes (Mermaid)
 └── README.md                         # Este arquivo
 ```
 
-**Diagrama de classes do projeto**
-
-# Diagrama de Classes — Anotai
-
-Arquitetura MVVM implementada no MVP.
-
-```mermaid
-classDiagram
-    class Nota {
-        +String id
-        +String titulo
-        +String conteudo
-        +DateTime criadaEm
-        +DateTime atualizadaEm
-        +bool isFavorita
-        +bool isArquivada
-        +bool isApagada
-        +toMap() Map
-        +fromMap() Nota
-    }
-
-    class NotaViewModel {
-        -List _notas
-        -Nota? _notaEmEdicao
-        +List notas
-        +List favoritas
-        +List arquivadas
-        +List lixeira
-        +Nota? notaEmEdicao
-        +carregarNotas()
-        +criarNota()
-        +editarNota()
-        +apagarNota()
-        +restaurarNota()
-        +deletarPermanentemente()
-        +arquivarNota()
-        +desarquivarNota()
-        +toggleFavorita()
-        +setNotaEmEdicao()
-    }
-
-    class NotaRepository {
-        <<interface>>
-        +buscarTodas() List
-        +salvar(Nota nota)
-        +deletar(String id)
-    }
-
-    class LocalNotaRepository {
-        -Box _box
-        +buscarTodas() List
-        +salvar(Nota nota)
-        +deletar(String id)
-    }
-
-    namespace ui_views {
-        class HomeView {
-            -int _selectedTabIndex
-            -NotaViewModel viewModel
-            +build()
-            -_buildContextMenuItems()
-        }
-
-        class EditorView {
-            -TextEditingController _titleController
-            -TextEditingController _contentController
-            -Timer? _debounceTimer
-            -bool _hasChanges
-            -NotaViewModel viewModel
-            +build()
-            -_onTextChanged()
-            -_saveAutomatically()
-            -_saveAndClose()
-            -_showInfoBottomSheet()
-            -_buildContextMenuItems()
-        }
-    }
-
-    namespace ui_components_home {
-        class HomeHeader["HomeHeader (placeholder)"]
-        class DockBar["DockBar (placeholder)"]
-        class NoteTile["NoteTile (placeholder)"]
-        class SectionHeader["SectionHeader (placeholder)"]
-        class EmptyState["EmptyState (placeholder)"]
-    }
-
-    namespace ui_components_editor {
-        class EditorHeader["EditorHeader (placeholder)"]
-        class InfoPopover["InfoPopover (placeholder)"]
-    }
-
-    namespace ui_styles {
-        class AppTheme {
-            +Color paper, paper2, card
-            +Color ink, muted, faint
-            +Color accent, accentPress, accentWeak
-            +Color amber, danger, saved
-            +TextStyle wordmark, greeting, sectionTitle
-            +TextStyle noteTitleList, notePreview, meta
-            +TextStyle editorTitle, editorBody, editorBodySerif
-            +double radiusButton, radiusTile, radiusDock
-            +List shadowButton, shadowMenu, shadowDock
-            +EdgeInsets tilePadding
-            +double listMaxWidth, editorMaxWidth
-        }
-    }
-
-    NotaViewModel --> NotaRepository : usa
-    LocalNotaRepository ..|> NotaRepository : implementa
-    HomeView --> NotaViewModel : observa
-    EditorView --> NotaViewModel : observa
-    NotaViewModel --> Nota : gerencia
-```
+**Diagrama de classes do projeto:** ver [docs/diagrama.md](docs/diagrama.md)
 
 ## Mudanças principais (MVP)
 
@@ -262,10 +152,10 @@ classDiagram
 |------|---------|--------|
 | **Fase 2** | Busca por título/conteúdo | ⏳ Planejado |
 | | Aba dedicada "Favoritas" | ⏳ Planejado |
-| | Diálogo de confirmação + Undo de exclusão | ⏳ Planejado |
+| | Diálogo de confirmação + Undo de exclusão | ✅ Concluído |
 | | Countdown de 30 dias na lixeira | ⏳ Planejado |
-| | Melhorias na UI — linguagem de design consistente | ⏳ Planejado |
-| | Contagem de caracteres/palavras na edição | ⏳ Planejado |
+| | Melhorias na UI — linguagem de design consistente | ✅ Concluído |
+| | Contagem de caracteres/palavras na edição | ✅ Concluído |
 | **Fase 3** | Lock/unlock (modo read-only) | ⏳ Planejado |
 | | Histórico de versões (reverter estado) | ⏳ Planejado |
 | | Suporte a imagens nas anotações | ⏳ Planejado |
