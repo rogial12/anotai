@@ -1,12 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../styles/app_theme.dart';
 
 // Estado vazio exibido quando não há notas na aba selecionada.
-// TODO: extrair de home_view.dart quando o design for implementado.
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key});
+  final int tabIndex;
+
+  const EmptyState({super.key, required this.tabIndex});
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox.shrink(); // placeholder sem impacto visual
+    final message = tabIndex == 0
+        ? 'Nenhuma nota ainda.'
+        : tabIndex == 1
+            ? 'Nenhuma nota arquivada.'
+            : 'Lixeira vazia.';
+
+    return Center(
+      child: Text(
+        message,
+        style: AppTheme.notePreview.copyWith(color: AppTheme.muted),
+      ),
+    );
   }
 }

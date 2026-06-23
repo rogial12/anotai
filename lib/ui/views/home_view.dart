@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../viewmodels/nota_viewmodel.dart';
 import '../../models/nota.dart';
 import 'editor_view.dart';
+import '../components/home/empty_state.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.
 ///
@@ -61,16 +62,7 @@ class _HomeViewState extends State<HomeView> {
 
           // Se não há notas nessa aba, exibe mensagem vazia
           if (notasParaExibir.isEmpty) {
-            return Center(
-              child: Text(
-                // Mensagem personalizadas por aba
-                _selectedTabIndex == 0
-                    ? 'Nenhuma nota ainda.'
-                    : _selectedTabIndex == 1
-                        ? 'Nenhuma nota arquivada.'
-                        : 'Lixeira vazia.',
-              ),
-            );
+            return EmptyState(tabIndex: _selectedTabIndex);
           }
 
           // Lista as notas da aba selecionada
