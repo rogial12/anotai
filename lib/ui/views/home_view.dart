@@ -7,6 +7,8 @@ import '../components/home/empty_state.dart';
 import '../components/home/section_header.dart';
 import '../components/home/note_tile.dart';
 import '../components/home/dock_bar.dart';
+import '../components/home/home_header.dart';
+import '../styles/app_theme.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.
 ///
@@ -32,20 +34,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar: barra no topo com título e botão de busca
-      appBar: AppBar(
-        title: const Text('Anotai'),
-        actions: [
-          // Botão de busca na extremidade direita do AppBar (placeholder por enquanto)
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implementar lógica de busca na Fase 2
-            },
-            tooltip: 'Buscar',
-          ),
-        ],
-      ),
+      backgroundColor: AppTheme.paper,
       // Body: conteúdo principal que muda baseado na aba selecionada
       body: Consumer<NotaViewModel>(
         builder: (context, viewModel, _) {
@@ -67,6 +56,13 @@ class _HomeViewState extends State<HomeView> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header do app: wordmark + busca + configurações
+              HomeHeader(
+                onSettings: () {
+                  // TODO: navegar para SettingsView
+                },
+              ),
+
               // Cabeçalho da seção: título + contador (sempre visível)
               SectionHeader(
                 title: tituloSecao,
@@ -110,19 +106,18 @@ class _HomeViewState extends State<HomeView> {
           });
         },
       ),
-      // FAB: botão flutuante para criar nova nota
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Limpa a nota em edição (null = modo criação)
           Provider.of<NotaViewModel>(context, listen: false)
               .setNotaEmEdicao(null);
-          // Navega para a EditorView em modo criação
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const EditorView()),
           );
         },
+        backgroundColor: AppTheme.accent,
+        foregroundColor: AppTheme.accentFg,
         tooltip: 'Nova nota',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.edit_outlined),
       ),
     );
   }
