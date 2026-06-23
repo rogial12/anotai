@@ -376,6 +376,13 @@ class _EditorViewState extends State<EditorView> {
 
         return Scaffold(
           backgroundColor: AppTheme.paper,
+          floatingActionButton: FloatingActionButton(
+            onPressed: _saveAndClose,
+            backgroundColor: AppTheme.accent,
+            foregroundColor: AppTheme.accentFg,
+            tooltip: 'Salvar',
+            child: const Icon(Icons.save_rounded),
+          ),
           body: Column(
             children: [
               EditorHeader(
@@ -387,7 +394,6 @@ class _EditorViewState extends State<EditorView> {
                     await viewModel.toggleFavorita(notaEmEdicao);
                   }
                 },
-                onSave: _saveAndClose,
                 menuItems: _buildContextMenuItems(),
               ),
               Expanded(

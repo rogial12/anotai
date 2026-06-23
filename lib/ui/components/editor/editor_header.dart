@@ -8,7 +8,6 @@ class EditorHeader extends StatelessWidget {
   final bool isFavorita;
   final VoidCallback onBack;
   final VoidCallback onToggleFavorita;
-  final VoidCallback onSave;
   final List<PopupMenuEntry<String>> menuItems;
 
   const EditorHeader({
@@ -17,7 +16,6 @@ class EditorHeader extends StatelessWidget {
     required this.isFavorita,
     required this.onBack,
     required this.onToggleFavorita,
-    required this.onSave,
     required this.menuItems,
   });
 
@@ -77,21 +75,6 @@ class EditorHeader extends StatelessWidget {
             itemBuilder: (_) => menuItems,
           ),
 
-          const SizedBox(width: 4),
-
-          // Botão salvar
-          FilledButton.icon(
-            onPressed: onSave,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.accent,
-              foregroundColor: AppTheme.accentFg,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTheme.radiusButton),
-              ),
-            ),
-            icon: const Icon(Icons.check, size: 18),
-            label: const Text('Salvar'),
-          ),
         ],
       ),
     );
