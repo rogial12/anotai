@@ -4,6 +4,7 @@ import '../../viewmodels/nota_viewmodel.dart';
 import '../../models/nota.dart';
 import 'editor_view.dart';
 import '../components/home/empty_state.dart';
+import '../components/home/section_header.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.
 ///
@@ -48,99 +49,85 @@ class _HomeViewState extends State<HomeView> {
         builder: (context, viewModel, _) {
           // Determine qual lista de notas mostrar baseado na aba selecionada
           List<Nota> notasParaExibir;
+          String tituloSecao;
 
           if (_selectedTabIndex == 0) {
-            // Aba "Anotações": mostra notas ativas (não arquivadas, não apagadas)
             notasParaExibir = viewModel.notas;
+            tituloSecao = 'Anotações';
           } else if (_selectedTabIndex == 1) {
-            // Aba "Arquivo": mostra apenas notas arquivadas (não apagadas)
             notasParaExibir = viewModel.arquivadas;
+            tituloSecao = 'Arquivo';
           } else {
-            // Aba "Lixeira": mostra apenas notas apagadas
             notasParaExibir = viewModel.lixeira;
+            tituloSecao = 'Lixeira';
           }
 
-          // Se não há notas nessa aba, exibe mensagem vazia
-          if (notasParaExibir.isEmpty) {
-            return EmptyState(tabIndex: _selectedTabIndex);
-          }
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Cabeçalho da seção: título + contador (sempre visível)
+              SectionHeader(
+                title: tituloSecao,
+                count: notasParaExibir.length,
+              ),
 
-          // Lista as notas da aba selecionada
-          return ListView.builder(
-            // itemCount: quantidade de notas a exibir
-            itemCount: notasParaExibir.length,
-            // itemBuilder: constrói cada item da lista
-            itemBuilder: (context, index) {
-              // Pega a nota no índice atual
-              final nota = notasParaExibir[index];
-
-              // ListTile é um widget que representa uma linha na lista
-              return ListTile(
-                // Título da nota (vai no topo da linha)
-                title: Text(nota.titulo),
-                // Subtítulo da nota (vai abaixo do título, em texto menor/desbotado)
-                subtitle: Text(nota.conteudo),
-                // Trailing: widget no final da linha (extremidade direita)
-                // Aqui colocamos o botão de favorita, restaurar (se lixeira), e menu de opções
-                trailing: Row(
-                  // mainAxisSize: deixar a Row compacta (ocupar só o espaço necessário)
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Botão de favorita (estrela)
-                    // Quando toca, chama toggleFavorita do viewModel
-                    IconButton(
-                      icon: Icon(
-                        // Se a nota é favorita, mostra estrela preenchida; senão, vazia
-                        nota.isFavorita
-                            ? Icons.star
-                            : Icons.star_border,
-                      ),
-                      // Se favorita, cor amarela; senão, cor padrão
-                      color: nota.isFavorita ? Colors.amber : null,
-                      onPressed: () {
-                        // Chama o método do viewModel que inverte o estado de favorita
-                        viewModel.toggleFavorita(nota);
-                      },
-                      tooltip: nota.isFavorita
-                          ? 'Remover de favoritos'
-                          : 'Adicionar aos favoritos',
-                    ),
-
-                    // Botão de restaurar (apenas na aba Lixeira)
-                    // Aparece só se _selectedTabIndex == 2 (Lixeira)
-                    if (_selectedTabIndex == 2)
-                      IconButton(
-                        icon: const Icon(Icons.restore),
-                        onPressed: () {
-                          // Restaura a nota da lixeira
-                          // Importante: mantém isArquivada, então volta para o lugar certo
-                          viewModel.restaurarNota(nota);
+              // Conteúdo: estado vazio ou lista de notas
+              if (notasParaExibir.isEmpty)
+                Expanded(child: EmptyState(tabIndex: _selectedTabIndex))
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: notasParaExibir.length,
+                    itemBuilder: (context, index) {
+                      final nota = notasParaExibir[index];
+                      return ListTile(
+                        title: Text(nota.titulo),
+                        subtitle: Text(nota.conteudo),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                nota.isFavorita
+                                    ? Icons.star
+                                    : Icons.star_border,
+                              ),
+                              color: nota.isFavorita ? Colors.amber : null,
+                              onPressed: () {
+                                viewModel.toggleFavorita(nota);
+                              },
+                              tooltip: nota.isFavorita
+                                  ? 'Remover de favoritos'
+                                  : 'Adicionar aos favoritos',
+                            ),
+                            if (_selectedTabIndex == 2)
+                              IconButton(
+                                icon: const Icon(Icons.restore),
+                                onPressed: () {
+                                  viewModel.restaurarNota(nota);
+                                },
+                                tooltip: 'Restaurar',
+                              ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert),
+                              tooltip: 'Mais opções',
+                              itemBuilder: (BuildContext context) {
+                                return _buildContextMenuItems(viewModel, nota, _selectedTabIndex);
+                              },
+                            ),
+                          ],
+                        ),
+                        onTap: () {
+                          viewModel.setNotaEmEdicao(nota);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const EditorView()),
+                          );
                         },
-                        tooltip: 'Restaurar',
-                      ),
-
-                    // Botão de opções (três pontos verticais)
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert),
-                      tooltip: 'Mais opções',
-                      // itemBuilder: constrói o menu baseado na aba selecionada
-                      itemBuilder: (BuildContext context) {
-                        return _buildContextMenuItems(viewModel, nota, _selectedTabIndex);
-                      },
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-                // onTap: quando toca na nota (em qualquer lugar exceto os botões), edita
-                onTap: () {
-                  // Define que essa nota está sendo editada
-                  viewModel.setNotaEmEdicao(nota);
-                  // Navega para a EditorView
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const EditorView()),
-                  );
-                },
-              );
-            },
+            ],
           );
         },
       ),
