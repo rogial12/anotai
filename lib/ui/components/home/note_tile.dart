@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/nota.dart';
 import '../../styles/app_theme.dart';
+import '../../utils/formatters.dart';
 
 // Linha de nota clicável: título, prévia, data, botões de favorita/restaurar/opções.
 // Widget "burro" — não conhece o ViewModel. Recebe dados e dispara callbacks.
@@ -32,11 +33,22 @@ class NoteTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: Text(
-        nota.conteudo,
-        style: AppTheme.notePreview,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+      subtitle: Row(
+        children: [
+          Expanded(
+            child: Text(
+              nota.conteudo,
+              style: AppTheme.notePreview,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            formatDate(nota.criadaEm),
+            style: AppTheme.meta,
+          ),
+        ],
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
