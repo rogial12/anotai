@@ -5,6 +5,7 @@ import '../../models/nota.dart';
 import 'editor_view.dart';
 import '../components/home/empty_state.dart';
 import '../components/home/section_header.dart';
+import '../components/home/note_tile.dart';
 
 /// HomeView é a tela principal do app, onde o usuário vê todas as suas notas.
 ///
@@ -80,49 +81,18 @@ class _HomeViewState extends State<HomeView> {
                     itemCount: notasParaExibir.length,
                     itemBuilder: (context, index) {
                       final nota = notasParaExibir[index];
-                      return ListTile(
-                        title: Text(nota.titulo),
-                        subtitle: Text(nota.conteudo),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                nota.isFavorita
-                                    ? Icons.star
-                                    : Icons.star_border,
-                              ),
-                              color: nota.isFavorita ? Colors.amber : null,
-                              onPressed: () {
-                                viewModel.toggleFavorita(nota);
-                              },
-                              tooltip: nota.isFavorita
-                                  ? 'Remover de favoritos'
-                                  : 'Adicionar aos favoritos',
-                            ),
-                            if (_selectedTabIndex == 2)
-                              IconButton(
-                                icon: const Icon(Icons.restore),
-                                onPressed: () {
-                                  viewModel.restaurarNota(nota);
-                                },
-                                tooltip: 'Restaurar',
-                              ),
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert),
-                              tooltip: 'Mais opções',
-                              itemBuilder: (BuildContext context) {
-                                return _buildContextMenuItems(viewModel, nota, _selectedTabIndex);
-                              },
-                            ),
-                          ],
-                        ),
+                      return NoteTile(
+                        nota: nota,
+                        isLixeira: _selectedTabIndex == 2,
                         onTap: () {
                           viewModel.setNotaEmEdicao(nota);
                           Navigator.of(context).push(
                             MaterialPageRoute(builder: (_) => const EditorView()),
                           );
                         },
+                        onToggleFavorita: () => viewModel.toggleFavorita(nota),
+                        onRestore: () => viewModel.restaurarNota(nota),
+                        menuItems: _buildContextMenuItems(viewModel, nota, _selectedTabIndex),
                       );
                     },
                   ),
