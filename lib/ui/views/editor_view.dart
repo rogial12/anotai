@@ -39,9 +39,6 @@ class _EditorViewState extends State<EditorView> {
   // Quando o usuário para de digitar por 5 segundos, o timer "queima" e salva
   Timer? _debounceTimer;
 
-  // Flag que rastreia se há mudanças não salvas
-  bool _hasChanges = false;
-
   /// initState: chamado quando o widget é criado
   ///
   /// Responsabilidades:
@@ -78,72 +75,17 @@ class _EditorViewState extends State<EditorView> {
     _contentController.addListener(_onTextChanged);
   }
 
-  /// _onTextChanged: chamado quando há qualquer mudança no texto dos campos
-  ///
-  /// Fluxo:
-  /// 1. Marca que há mudanças não salvas (_hasChanges = true)
-  /// 2. Cancela o timer anterior (se houve um)
-  /// 3. Inicia um novo timer de 5 segundos
-  /// 4. Se o usuário continuar digitando, o timer será cancelado e reiniciado
-  /// 5. Se o usuário parar de digitar por 5 segundos, o timer "explode" e salva
+  /// _onTextChanged: reinicia o debounce a cada digitação
   void _onTextChanged() {
-    // Marca que há mudanças não salvas
-    _hasChanges = true;
-
-    // Cancela o timer anterior se ainda estiver rodando
-    // Isso significa que o usuário digitou novamente antes dos 5 segundos
     _debounceTimer?.cancel();
-
-    // Inicia novo timer: após 5 segundos sem mudanças, salva automaticamente
     _debounceTimer = Timer(const Duration(seconds: 5), _saveAutomatically);
   }
 
-  /// _saveAutomatically: salva a nota automaticamente (chamado pelo debounce timer)
-  ///
-  /// Fluxo:
-  /// 1. Se não há mudanças, não faz nada (otimização)
-  /// 2. Recupera a nota que está sendo editada
-  /// 3. Se notaEmEdicao == null (criação): chama criarNota()
-  /// 4. Se notaEmEdicao != null (edição): chama editarNota()
-  /// 5. Marca _hasChanges = false (pois salvou)
-  /// 6. Em caso de erro, imprime no console (TODO: exibir snackbar)
   Future<void> _saveAutomatically() async {
-    // Se não há mudanças, não precisa salvar
-    if (!_hasChanges) return;
-
-    // Recupera a nota que está sendo editada (ou null se criando)
-    final notaEmEdicao = _viewModel.notaEmEdicao;
-
-    try {
-      if (notaEmEdicao == null) {
-        // Modo CRIAÇÃO: cria uma nova nota com os dados do formulário
-        await _viewModel.criarNota(
-          titulo: _titleController.text,
-          conteudo: _contentController.text,
-        );
-
-        // Após criar, recupera a nota recém-criada e a define como _notaEmEdicao
-        // Isso é útil porque se o usuário continuar editando, vai estar editando a nota criada
-        _viewModel.setNotaEmEdicao(
-          _viewModel.notas.firstWhere(
-            (n) => n.titulo == _titleController.text,
-          ),
-        );
-      } else {
-        // Modo EDIÇÃO: atualiza a nota existente com os dados do formulário
-        await _viewModel.editarNota(
-          notaEmEdicao,
-          titulo: _titleController.text,
-          conteudo: _contentController.text,
-        );
-      }
-
-      // Marca que as mudanças foram salvas (não há mais mudanças pendentes)
-      _hasChanges = false;
-    } catch (e) {
-      // Em caso de erro, imprime no console (TODO: melhorar com snackbar ou tratamento real)
-      print('Erro ao salvar: $e');
-    }
+    await _viewModel.salvarNota(
+      titulo: _titleController.text,
+      conteudo: _contentController.text,
+    );
   }
 
   /// _saveAndClose: salva a nota imediatamente e fecha a tela

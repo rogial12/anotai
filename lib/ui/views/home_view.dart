@@ -107,12 +107,15 @@ class _HomeViewState extends State<HomeView> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Provider.of<NotaViewModel>(context, listen: false)
-              .setNotaEmEdicao(null);
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const EditorView()),
-          );
+        onPressed: () async {
+          final viewModel =
+              Provider.of<NotaViewModel>(context, listen: false);
+          await viewModel.criarNotaVazia();
+          if (context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const EditorView()),
+            );
+          }
         },
         backgroundColor: AppTheme.accent,
         foregroundColor: AppTheme.accentFg,

@@ -29,25 +29,30 @@ class NotaViewModel extends ChangeNotifier {
 
   // ===== GETTERS FILTRADOS =====
 
-  /// Notas comuns (não arquivadas, não apagadas)
+  /// Notas comuns (não arquivadas, não apagadas, não vazias)
   /// Exibidas na aba "Anotações"
-  List<Nota> get notas =>
-      _notas.where((n) => !n.isApagada && !n.isArquivada).toList();
+  List<Nota> get notas => _notas.where((n) =>
+      !n.isApagada &&
+      !n.isArquivada &&
+      (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
 
-  /// Notas marcadas como favorita (não apagadas, não arquivadas)
+  /// Notas marcadas como favorita (não apagadas, não arquivadas, não vazias)
   /// Exibidas em uma aba "Favoritas" (futura)
-  List<Nota> get favoritas =>
-      _notas.where((n) => n.isFavorita && !n.isApagada && !n.isArquivada).toList();
+  List<Nota> get favoritas => _notas.where((n) =>
+      n.isFavorita &&
+      !n.isApagada &&
+      !n.isArquivada &&
+      (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
 
-  /// Notas arquivadas (não apagadas)
+  /// Notas arquivadas (não apagadas, não vazias)
   /// Exibidas na aba "Arquivo"
-  /// Importante: isArquivada persiste mesmo que a nota seja apagada
-  List<Nota> get arquivadas =>
-      _notas.where((n) => n.isArquivada && !n.isApagada).toList();
+  List<Nota> get arquivadas => _notas.where((n) =>
+      n.isArquivada &&
+      !n.isApagada &&
+      (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
 
   /// Notas apagadas (na lixeira)
   /// Exibidas na aba "Lixeira"
-  /// Nota: podem estar arquivadas ou não (isArquivada é mantido)
   List<Nota> get lixeira => _notas.where((n) => n.isApagada).toList();
 
   /// Getter para a nota sendo editada
@@ -79,62 +84,40 @@ class NotaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// criarNota: cria uma nova nota
+  /// criarNotaVazia: cria uma nota vazia e a define como nota em edição
   ///
-  /// Parâmetros:
-  /// - titulo: título da nota (obrigatório)
-  /// - conteudo: conteúdo/corpo da nota (obrigatório)
-  ///
-  /// Fluxo:
-  /// 1. Gera ID único baseado em timestamp
-  /// 2. Cria objeto Nota com estado padrão (não favorita, não arquivada, não apagada)
-  /// 3. Salva no repositório (banco)
-  /// 4. Adiciona à lista em memória
-  /// 5. Notifica a UI
-  Future<void> criarNota({required String titulo, required String conteudo}) async {
-    // Cria nova nota com ID baseado no timestamp em milissegundos
+  /// Chamado quando o usuário abre o editor em modo criação.
+  /// A nota existe no banco desde o início — o editor sempre está em modo edição.
+  /// Notas vazias são filtradas dos getters e ficam invisíveis na lista.
+  Future<void> criarNotaVazia() async {
     final nota = Nota(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      titulo: titulo,
-      conteudo: conteudo,
+      titulo: '',
+      conteudo: '',
       criadaEm: DateTime.now(),
       atualizadaEm: DateTime.now(),
-      // Estados padrão (não é favorita, não é arquivada, não está apagada)
-      isFavorita: false,
-      isArquivada: false,
-      isApagada: false,
     );
-    // Salva no banco
     await _repository.salvar(nota);
-    // Adiciona à lista em memória
     _notas.add(nota);
-    // Notifica a UI
+    _notaEmEdicao = nota;
     notifyListeners();
   }
 
-  /// editarNota: edita uma nota existente
+  /// salvarNota: salva título e conteúdo na nota em edição
   ///
-  /// Parâmetros:
-  /// - nota: referência à nota a ser editada
-  /// - titulo: novo título (null = não altera)
-  /// - conteudo: novo conteúdo (null = não altera)
-  ///
-  /// Fluxo:
-  /// 1. Altera os campos que foram passados
-  /// 2. Atualiza atualizadaEm com data/hora atual
-  /// 3. Salva no repositório
-  /// 4. Notifica a UI
-  Future<void> editarNota(Nota nota, {String? titulo, String? conteudo}) async {
-    // Se foi passado novo título, altera a nota
-    if (titulo != null) nota.titulo = titulo;
-    // Se foi passado novo conteúdo, altera a nota
-    if (conteudo != null) nota.conteudo = conteudo;
-    // Sempre atualiza a data de última modificação
-    nota.atualizadaEm = DateTime.now();
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
-    notifyListeners();
+  /// Sempre edita _notaEmEdicao — não há distinção entre criar e editar.
+  /// A decisão criar-vs-editar aconteceu antes, em criarNotaVazia() ou setNotaEmEdicao().
+  Future<void> salvarNota({required String titulo, required String conteudo}) async {
+    if (_notaEmEdicao == null) return;
+    try {
+      _notaEmEdicao!.titulo = titulo;
+      _notaEmEdicao!.conteudo = conteudo;
+      _notaEmEdicao!.atualizadaEm = DateTime.now();
+      await _repository.salvar(_notaEmEdicao!);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erro ao salvar nota: $e');
+    }
   }
 
   /// apagarNota: move uma nota para a lixeira (soft delete)
