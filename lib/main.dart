@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
+import 'services/note_editor_service.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'ui/views/home_view.dart';
 import 'ui/styles/app_theme.dart';
@@ -21,7 +22,14 @@ class AnotaiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => NotaViewModel(LocalNotaRepository())..carregarNotas(),
+      create: (_) {
+        // Cria o repositório uma vez e o compartilha entre ViewModel e serviços
+        final repo = LocalNotaRepository();
+        return NotaViewModel(
+          repo,
+          noteEditorService: NoteEditorService(repo),
+        )..carregarNotas();
+      },
       child: MaterialApp(
         title: 'Anotai',
         debugShowCheckedModeBanner: false,

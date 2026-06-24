@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/nota.dart';
 import '../repositories/nota_repository.dart';
+import '../services/note_editor_service.dart';
 
 /// NotaViewModel: gerencia o estado das notas do app
 ///
@@ -16,16 +17,20 @@ class NotaViewModel extends ChangeNotifier {
   // Repositório: responsável por acessar/salvar dados no banco
   final NotaRepository _repository;
 
+  // Serviço de edição: criação de nota vazia e salvamento
+  final NoteEditorService _noteEditorService;
+
   // Lista completa de notas em memória (incluindo deletadas e arquivadas)
   List<Nota> _notas = [];
 
-  // Rastreia qual nota está sendo editada (null = criando nova nota)
+  // Rastreia qual nota está sendo editada
   Nota? _notaEmEdicao;
 
   // ===== CONSTRUTORES =====
 
-  /// Construtor: recebe o repositório via injeção de dependência
-  NotaViewModel(this._repository);
+  // Recebe repositório e serviços via injeção de dependência
+  NotaViewModel(this._repository, {required NoteEditorService noteEditorService})
+      : _noteEditorService = noteEditorService;
 
   // ===== GETTERS FILTRADOS =====
 
@@ -84,36 +89,23 @@ class NotaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// criarNotaVazia: cria uma nota vazia e a define como nota em edição
-  ///
-  /// Chamado quando o usuário abre o editor em modo criação.
-  /// A nota existe no banco desde o início — o editor sempre está em modo edição.
-  /// Notas vazias são filtradas dos getters e ficam invisíveis na lista.
+  // Cria nota vazia via serviço, adiciona à lista e define como nota em edição
   Future<void> criarNotaVazia() async {
-    final nota = Nota(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      titulo: '',
-      conteudo: '',
-      criadaEm: DateTime.now(),
-      atualizadaEm: DateTime.now(),
-    );
-    await _repository.salvar(nota);
+    final nota = await _noteEditorService.criarNotaVazia();
     _notas.add(nota);
     _notaEmEdicao = nota;
     notifyListeners();
   }
 
-  /// salvarNota: salva título e conteúdo na nota em edição
-  ///
-  /// Sempre edita _notaEmEdicao — não há distinção entre criar e editar.
-  /// A decisão criar-vs-editar aconteceu antes, em criarNotaVazia() ou setNotaEmEdicao().
+  // Salva título e conteúdo via serviço e notifica a UI
   Future<void> salvarNota({required String titulo, required String conteudo}) async {
     if (_notaEmEdicao == null) return;
     try {
-      _notaEmEdicao!.titulo = titulo;
-      _notaEmEdicao!.conteudo = conteudo;
-      _notaEmEdicao!.atualizadaEm = DateTime.now();
-      await _repository.salvar(_notaEmEdicao!);
+      await _noteEditorService.salvarNota(
+        _notaEmEdicao!,
+        titulo: titulo,
+        conteudo: conteudo,
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Erro ao salvar nota: $e');
