@@ -162,7 +162,7 @@ classDiagram
     NotaViewModel --> Nota : gerencia
 ```
 
-## Mudanças principais (MVP)
+## Histórico de mudanças
 
 ### Modelo Nota
 - **Removido:** `DateTime? apagadaEm`
@@ -172,10 +172,17 @@ classDiagram
 
 ### ViewModel
 - **Novo:** `_notaEmEdicao` — rastreia nota em edição
-- **Novos métodos:** `desarquivarNota()`, `deletarPermanentemente()`, `setNotaEmEdicao()`
+- **Novo:** `criarNotaVazia()` — cria nota vazia ao abrir editor (padrão "sempre editando")
+- **Novo:** `salvarNota()` — substitui `criarNota` + `editarNota`, sem distinção criar/editar
+- **Removidos:** `criarNota()` e `editarNota()` — lógica migrada para `NoteEditorService`
 - **Refatorado:** `restaurarNota()` — mantém estado `isArquivada` ao restaurar
-- **Refatorado:** getters filtrados agora usam `isApagada` em lugar de `apagadaEm`
+- **Refatorado:** getters filtrados excluem notas vazias (título e conteúdo em branco)
 
 ### Views
-- **HomeView:** Menu dinâmico por aba, `PopupMenuButton` para posicionamento correto
-- **EditorView:** Envolvida em `Consumer` para escutar mudanças, botão favorita funcional, bottom sheet de informações
+- **HomeView:** FAB chama `criarNotaVazia()` antes de navegar para o editor
+- **EditorView:** `_saveAutomatically()` simplificado para uma chamada a `salvarNota()`; `_hasChanges` removido
+
+### Camada Services (planejada — migração em andamento)
+- **`TrashService`**: receberá `apagarNota`, `restaurarNota`, `deletarPermanentemente` + `limparExpiradas` (futuro)
+- **`ArchiveService`**: receberá `arquivarNota`, `desarquivarNota`
+- **`NoteEditorService`**: receberá `criarNotaVazia`, `salvarNota`

@@ -54,13 +54,14 @@ arquitetura de software, boas práticas e versionamento com Git.
 
 ## Arquitetura
 
-Padrão **MVVM** (Model-View-ViewModel), com camadas bem definidas:
+Padrão **MVVM** (Model-View-ViewModel) com **Service Layer**, camadas bem definidas:
 
 ```
 lib/
 ├── models/         # Nota: classe de dados com serialização
 ├── repositories/   # NotaRepository (interface) + LocalNotaRepository (Hive)
-├── viewmodels/     # NotaViewModel: lógica de estado, ChangeNotifier
+├── services/       # Regras de negócio: TrashService, ArchiveService, NoteEditorService
+├── viewmodels/     # NotaViewModel: estado reativo, ChangeNotifier, delega para Services
 ├── ui/             # Tudo relacionado à interface
 │   ├── views/      # HomeView, EditorView: orquestram a tela
 │   ├── components/ # Widgets reutilizáveis (home/ e editor/)
@@ -69,13 +70,21 @@ lib/
 └── main.dart       # Inicialização (Hive, Provider, app raiz)
 ```
 
+O fluxo entre camadas:
+```
+View  →  ViewModel  →  Services  →  Repository  →  Hive
+ UI      estado +        regras      acesso aos      banco
+         notifica        negócio       dados
+```
+
 ### Padrões utilizados
 
 - **Repository Pattern** — abstração entre lógica e persistência
-- **Soft Delete** — exclusão lógica com flag `isApagada` (futuro: countdown 30 dias)
+- **Service Layer** — regras de negócio isoladas do ViewModel (TrashService, ArchiveService, NoteEditorService)
+- **Soft Delete** — exclusão lógica com flag `isApagada` (futuro: countdown 30 dias no TrashService)
 - **Change Notifier** — reatividade: Views escutam mudanças no ViewModel
 - **Debounce** — salvamento automático após 5s de inatividade
-- **Injeção de Dependência** — ViewModel recebe Repository no construtor
+- **Injeção de Dependência** — serviços e ViewModel recebem Repository no construtor
 
 ### Estados da Nota
 
@@ -109,14 +118,18 @@ anotai/
 │   ├── repositories/
 │   │   ├── nota_repository.dart      # Interface (contrato)
 │   │   └── local_nota_repository.dart # Implementação Hive
-│   ├── viewmodels/nota_viewmodel.dart # Lógica + estado reativo
+│   ├── services/
+│   │   ├── trash_service.dart        # Soft delete, restauração, exclusão permanente, countdown (futuro)
+│   │   ├── archive_service.dart      # Arquivamento e desarquivamento
+│   │   └── note_editor_service.dart  # Criação de nota vazia, salvamento
+│   ├── viewmodels/nota_viewmodel.dart # Estado reativo, delega operações para Services
 │   ├── ui/
 │   │   ├── views/
 │   │   │   ├── home_view.dart        # Tela principal (3 abas)
-│   │   │   └── editor_view.dart      # Tela de criação/edição
+│   │   │   └── editor_view.dart      # Tela de edição (padrão "sempre editando")
 │   │   ├── components/
 │   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, etc.
-│   │   │   └── editor/               # EditorHeader, InfoPopover
+│   │   │   └── editor/               # EditorHeader
 │   │   ├── styles/app_theme.dart     # Tokens implementados: 16 cores, 13 estilos, raios, sombras, espaçamentos
 │   │   └── utils/formatters.dart     # Funções auxiliares puras: formatDate, wordCount, charCount
 │   └── main.dart                     # Entry point
