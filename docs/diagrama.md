@@ -133,6 +133,9 @@ classDiagram
     }
 
     namespace services {
+        class FavoriteService {
+            +toggleFavorita()
+        }
         class TrashService {
             +apagarNota()
             +restaurarNota()
@@ -150,9 +153,11 @@ classDiagram
     }
 
     NotaViewModel --> NotaRepository : usa
+    NotaViewModel --> FavoriteService : delega
     NotaViewModel --> TrashService : delega
     NotaViewModel --> ArchiveService : delega
     NotaViewModel --> NoteEditorService : delega
+    FavoriteService --> NotaRepository : usa
     TrashService --> NotaRepository : usa
     ArchiveService --> NotaRepository : usa
     NoteEditorService --> NotaRepository : usa

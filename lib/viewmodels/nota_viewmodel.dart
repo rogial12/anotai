@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../models/nota.dart';
 import '../repositories/nota_repository.dart';
 import '../services/archive_service.dart';
+import '../services/favorite_service.dart';
 import '../services/note_editor_service.dart';
 import '../services/trash_service.dart';
 
@@ -28,6 +29,9 @@ class NotaViewModel extends ChangeNotifier {
   // Serviço de lixeira: soft delete, restauração e exclusão permanente
   final TrashService _trashService;
 
+  // Serviço de favoritas: toggle e futuros recursos de gerenciamento
+  final FavoriteService _favoriteService;
+
   // Lista completa de notas em memória (incluindo deletadas e arquivadas)
   List<Nota> _notas = [];
 
@@ -42,9 +46,11 @@ class NotaViewModel extends ChangeNotifier {
     required NoteEditorService noteEditorService,
     required ArchiveService archiveService,
     required TrashService trashService,
+    required FavoriteService favoriteService,
   })  : _noteEditorService = noteEditorService,
         _archiveService = archiveService,
-        _trashService = trashService;
+        _trashService = trashService,
+        _favoriteService = favoriteService;
 
   // ===== GETTERS FILTRADOS =====
 
@@ -167,12 +173,9 @@ class NotaViewModel extends ChangeNotifier {
   /// 1. Inverte nota.isFavorita (true → false, false → true)
   /// 2. Salva no banco
   /// 3. Notifica a UI (icon da nota muda de estrela vazia/cheia)
+  // Delega ao FavoriteService e notifica a UI
   Future<void> toggleFavorita(Nota nota) async {
-    // Inverte: se era favorita, deixa de ser; se não era, vira
-    nota.isFavorita = !nota.isFavorita;
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
+    await _favoriteService.toggleFavorita(nota);
     notifyListeners();
   }
 }
