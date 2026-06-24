@@ -26,8 +26,8 @@ classDiagram
         +List lixeira
         +Nota? notaEmEdicao
         +carregarNotas()
-        +criarNota()
-        +editarNota()
+        +criarNotaVazia()
+        +salvarNota()
         +apagarNota()
         +restaurarNota()
         +deletarPermanentemente()
@@ -63,7 +63,6 @@ classDiagram
             -TextEditingController _titleController
             -TextEditingController _contentController
             -Timer? _debounceTimer
-            -bool _hasChanges
             -NotaViewModel viewModel
             +build()
             -_onTextChanged()
@@ -133,7 +132,30 @@ classDiagram
         }
     }
 
+    namespace services {
+        class TrashService["TrashService (planejado)"] {
+            +apagarNota()
+            +restaurarNota()
+            +deletarPermanentemente()
+            +limparExpiradas()
+        }
+        class ArchiveService["ArchiveService (planejado)"] {
+            +arquivarNota()
+            +desarquivarNota()
+        }
+        class NoteEditorService["NoteEditorService (planejado)"] {
+            +criarNotaVazia()
+            +salvarNota()
+        }
+    }
+
     NotaViewModel --> NotaRepository : usa
+    NotaViewModel --> TrashService : delega
+    NotaViewModel --> ArchiveService : delega
+    NotaViewModel --> NoteEditorService : delega
+    TrashService --> NotaRepository : usa
+    ArchiveService --> NotaRepository : usa
+    NoteEditorService --> NotaRepository : usa
     LocalNotaRepository ..|> NotaRepository : implementa
     HomeView --> NotaViewModel : observa
     EditorView --> NotaViewModel : observa
