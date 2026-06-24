@@ -65,10 +65,27 @@ class NoteTile extends StatelessWidget {
           // Botão favorita — nas abas Anotações e Arquivo
           if (!isLixeira)
             IconButton(
-              icon: Icon(
-                nota.isFavorita ? Icons.star : Icons.star_border,
-              ),
-              color: nota.isFavorita ? AppTheme.amber : AppTheme.faint,
+              icon: nota.isFavorita
+                  ? Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppTheme.amber.withValues(alpha: 0.18),
+                      ),
+                      child: const Icon(
+                        Icons.star_rounded,
+                        color: AppTheme.amber,
+                        size: 24,
+                      ),
+                    )
+                  : const SizedBox(
+                      width: 32,
+                      height: 32,
+                      child: Icon(Icons.star_border, size: 24),
+                    ),
+              color: AppTheme.faint,
+              iconSize: 32,
               onPressed: onToggleFavorita,
               tooltip: nota.isFavorita
                   ? 'Remover de favoritos'
