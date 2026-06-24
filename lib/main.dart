@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
 import 'services/archive_service.dart';
 import 'services/note_editor_service.dart';
+import 'services/trash_service.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'ui/views/home_view.dart';
 import 'ui/styles/app_theme.dart';
@@ -30,6 +31,7 @@ class AnotaiApp extends StatelessWidget {
           repo,
           noteEditorService: NoteEditorService(repo),
           archiveService: ArchiveService(repo),
+          trashService: TrashService(repo),
         )..carregarNotas();
       },
       child: MaterialApp(

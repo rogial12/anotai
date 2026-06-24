@@ -3,6 +3,7 @@ import '../models/nota.dart';
 import '../repositories/nota_repository.dart';
 import '../services/archive_service.dart';
 import '../services/note_editor_service.dart';
+import '../services/trash_service.dart';
 
 /// NotaViewModel: gerencia o estado das notas do app
 ///
@@ -24,6 +25,9 @@ class NotaViewModel extends ChangeNotifier {
   // Serviço de arquivo: arquivamento e desarquivamento
   final ArchiveService _archiveService;
 
+  // Serviço de lixeira: soft delete, restauração e exclusão permanente
+  final TrashService _trashService;
+
   // Lista completa de notas em memória (incluindo deletadas e arquivadas)
   List<Nota> _notas = [];
 
@@ -37,8 +41,10 @@ class NotaViewModel extends ChangeNotifier {
     this._repository, {
     required NoteEditorService noteEditorService,
     required ArchiveService archiveService,
+    required TrashService trashService,
   })  : _noteEditorService = noteEditorService,
-        _archiveService = archiveService;
+        _archiveService = archiveService,
+        _trashService = trashService;
 
   // ===== GETTERS FILTRADOS =====
 
@@ -120,72 +126,23 @@ class NotaViewModel extends ChangeNotifier {
     }
   }
 
-  /// apagarNota: move uma nota para a lixeira (soft delete)
-  ///
-  /// Parâmetro:
-  /// - nota: nota a ser apagada
-  ///
-  /// Fluxo:
-  /// 1. Marca nota.isApagada = true
-  /// 2. IMPORTANTE: mantém isArquivada no seu estado anterior
-  /// 3. Salva no banco
-  /// 4. Notifica a UI (nota sai da aba atual, aparece na Lixeira)
-  ///
-  /// Nota: isso é "soft delete" — a nota não é excluída do banco, só marcada como apagada
-  /// Ela entra no countdown de 30 dias antes de ser excluída permanentemente
+  // Delega ao TrashService e notifica a UI
   Future<void> apagarNota(Nota nota) async {
-    // Marca como apagada (vai para lixeira)
-    nota.isApagada = true;
-    // isArquivada continua como era (pode ser true ou false)
-    // Isso é importante para restauração: a nota lembra se era arquivada
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
+    await _trashService.apagarNota(nota);
     notifyListeners();
   }
 
-  /// restaurarNota: restaura uma nota da lixeira
-  ///
-  /// Parâmetro:
-  /// - nota: nota a ser restaurada
-  ///
-  /// Fluxo:
-  /// 1. Marca nota.isApagada = false
-  /// 2. IMPORTANTE: mantém isArquivada no seu estado anterior
-  /// 3. Salva no banco
-  /// 4. Notifica a UI (nota volta para sua aba original)
-  ///
-  /// Exemplo:
-  /// - Se nota.isArquivada == true: volta para aba "Arquivo"
-  /// - Se nota.isArquivada == false: volta para aba "Anotações"
+  // Delega ao TrashService e notifica a UI
   Future<void> restaurarNota(Nota nota) async {
-    // Marca como não apagada (sai da lixeira)
-    nota.isApagada = false;
-    // isArquivada mantém seu valor anterior
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
+    await _trashService.restaurarNota(nota);
     notifyListeners();
   }
 
-  /// deletarPermanentemente: exclui uma nota definitivamente do banco (hard delete)
-  ///
-  /// Parâmetro:
-  /// - nota: nota a ser excluída permanentemente
-  ///
-  /// Fluxo:
-  /// 1. Remove a nota do banco via repository.deletar()
-  /// 2. Remove a nota da lista em memória
-  /// 3. Notifica a UI
-  ///
-  /// CUIDADO: isso é irreversível — a nota é excluída de verdade
-  /// Só deve ser chamado quando o usuário confirma a exclusão permanente
+  // Delega ao TrashService, remove da lista em memória e notifica a UI
+  // Remover de _notas é responsabilidade do ViewModel — é estado, não persistência
   Future<void> deletarPermanentemente(Nota nota) async {
-    // Chama o repositório para deletar de verdade do banco
-    await _repository.deletar(nota.id);
-    // Remove da lista em memória
+    await _trashService.deletarPermanentemente(nota);
     _notas.removeWhere((n) => n.id == nota.id);
-    // Notifica a UI
     notifyListeners();
   }
 
