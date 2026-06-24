@@ -133,17 +133,17 @@ classDiagram
     }
 
     namespace services {
-        class TrashService["TrashService (planejado)"] {
+        class TrashService {
             +apagarNota()
             +restaurarNota()
             +deletarPermanentemente()
             +limparExpiradas()
         }
-        class ArchiveService["ArchiveService (planejado)"] {
+        class ArchiveService {
             +arquivarNota()
             +desarquivarNota()
         }
-        class NoteEditorService["NoteEditorService (planejado)"] {
+        class NoteEditorService {
             +criarNotaVazia()
             +salvarNota()
         }
@@ -182,7 +182,8 @@ classDiagram
 - **HomeView:** FAB chama `criarNotaVazia()` antes de navegar para o editor
 - **EditorView:** `_saveAutomatically()` simplificado para uma chamada a `salvarNota()`; `_hasChanges` removido
 
-### Camada Services (planejada — migração em andamento)
-- **`TrashService`**: receberá `apagarNota`, `restaurarNota`, `deletarPermanentemente` + `limparExpiradas` (futuro)
-- **`ArchiveService`**: receberá `arquivarNota`, `desarquivarNota`
-- **`NoteEditorService`**: receberá `criarNotaVazia`, `salvarNota`
+### Camada Services (implementada)
+- **`TrashService`**: `apagarNota`, `restaurarNota`, `deletarPermanentemente` + `limparExpiradas` (TODO — expiração de 30 dias)
+- **`ArchiveService`**: `arquivarNota`, `desarquivarNota`
+- **`NoteEditorService`**: `criarNotaVazia`, `salvarNota`
+- Todos os serviços recebem `NotaRepository` via injeção de dependência e são instanciados em `main.dart`
