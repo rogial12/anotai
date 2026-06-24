@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'repositories/local_nota_repository.dart';
+import 'services/archive_service.dart';
 import 'services/note_editor_service.dart';
 import 'viewmodels/nota_viewmodel.dart';
 import 'ui/views/home_view.dart';
@@ -28,6 +29,7 @@ class AnotaiApp extends StatelessWidget {
         return NotaViewModel(
           repo,
           noteEditorService: NoteEditorService(repo),
+          archiveService: ArchiveService(repo),
         )..carregarNotas();
       },
       child: MaterialApp(

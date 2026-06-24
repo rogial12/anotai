@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/nota.dart';
 import '../repositories/nota_repository.dart';
+import '../services/archive_service.dart';
 import '../services/note_editor_service.dart';
 
 /// NotaViewModel: gerencia o estado das notas do app
@@ -20,6 +21,9 @@ class NotaViewModel extends ChangeNotifier {
   // Serviço de edição: criação de nota vazia e salvamento
   final NoteEditorService _noteEditorService;
 
+  // Serviço de arquivo: arquivamento e desarquivamento
+  final ArchiveService _archiveService;
+
   // Lista completa de notas em memória (incluindo deletadas e arquivadas)
   List<Nota> _notas = [];
 
@@ -29,8 +33,12 @@ class NotaViewModel extends ChangeNotifier {
   // ===== CONSTRUTORES =====
 
   // Recebe repositório e serviços via injeção de dependência
-  NotaViewModel(this._repository, {required NoteEditorService noteEditorService})
-      : _noteEditorService = noteEditorService;
+  NotaViewModel(
+    this._repository, {
+    required NoteEditorService noteEditorService,
+    required ArchiveService archiveService,
+  })  : _noteEditorService = noteEditorService,
+        _archiveService = archiveService;
 
   // ===== GETTERS FILTRADOS =====
 
@@ -181,39 +189,15 @@ class NotaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// arquivarNota: move uma nota para o arquivo
-  ///
-  /// Parâmetro:
-  /// - nota: nota a ser arquivada
-  ///
-  /// Fluxo:
-  /// 1. Marca nota.isArquivada = true
-  /// 2. Salva no banco
-  /// 3. Notifica a UI (nota sai de "Anotações" e entra em "Arquivo")
+  // Delega ao ArchiveService e notifica a UI
   Future<void> arquivarNota(Nota nota) async {
-    // Marca como arquivada
-    nota.isArquivada = true;
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
+    await _archiveService.arquivarNota(nota);
     notifyListeners();
   }
 
-  /// desarquivarNota: remove uma nota do arquivo (volta para "Anotações")
-  ///
-  /// Parâmetro:
-  /// - nota: nota a ser desarquivada
-  ///
-  /// Fluxo:
-  /// 1. Marca nota.isArquivada = false
-  /// 2. Salva no banco
-  /// 3. Notifica a UI (nota sai de "Arquivo" e entra em "Anotações")
+  // Delega ao ArchiveService e notifica a UI
   Future<void> desarquivarNota(Nota nota) async {
-    // Marca como não arquivada
-    nota.isArquivada = false;
-    // Salva no banco
-    await _repository.salvar(nota);
-    // Notifica a UI
+    await _archiveService.desarquivarNota(nota);
     notifyListeners();
   }
 
