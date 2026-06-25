@@ -4,6 +4,7 @@ import '../repositories/nota_repository.dart';
 import '../services/archive_service.dart';
 import '../services/favorite_service.dart';
 import '../services/note_editor_service.dart';
+import '../services/search_service.dart';
 import '../services/trash_service.dart';
 
 /// NotaViewModel: gerencia o estado das notas do app
@@ -32,11 +33,17 @@ class NotaViewModel extends ChangeNotifier {
   // Serviço de favoritas: toggle e futuros recursos de gerenciamento
   final FavoriteService _favoriteService;
 
+  // Serviço de busca: filtragem por título e conteúdo
+  final SearchService _searchService;
+
   // Lista completa de notas em memória (incluindo deletadas e arquivadas)
   List<Nota> _notas = [];
 
   // Rastreia qual nota está sendo editada
   Nota? _notaEmEdicao;
+
+  // Query de busca atual (string vazia = sem filtro ativo)
+  String _searchQuery = '';
 
   // ===== CONSTRUTORES =====
 
@@ -47,49 +54,59 @@ class NotaViewModel extends ChangeNotifier {
     required ArchiveService archiveService,
     required TrashService trashService,
     required FavoriteService favoriteService,
+    required SearchService searchService,
   })  : _noteEditorService = noteEditorService,
         _archiveService = archiveService,
         _trashService = trashService,
-        _favoriteService = favoriteService;
+        _favoriteService = favoriteService,
+        _searchService = searchService;
 
   // ===== GETTERS FILTRADOS =====
 
-  /// Notas comuns (não arquivadas, não apagadas, não vazias)
-  /// Exibidas na aba "Anotações"
-  List<Nota> get notas => _notas.where((n) =>
-      !n.isApagada &&
-      !n.isArquivada &&
-      (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
+  /// Query de busca atual (string vazia = sem filtro ativo)
+  String get searchQuery => _searchQuery;
+
+  /// Notas comuns (não arquivadas, não apagadas, não vazias), filtradas pela busca
+  List<Nota> get notas {
+    final base = _notas.where((n) =>
+        !n.isApagada &&
+        !n.isArquivada &&
+        (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
+    return _searchService.buscar(base, _searchQuery);
+  }
+
+  /// Notas arquivadas (não apagadas, não vazias), filtradas pela busca
+  List<Nota> get arquivadas {
+    final base = _notas.where((n) =>
+        n.isArquivada &&
+        !n.isApagada &&
+        (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
+    return _searchService.buscar(base, _searchQuery);
+  }
 
   /// Notas marcadas como favorita (não apagadas, não arquivadas, não vazias)
-  /// Exibidas em uma aba "Favoritas" (futura)
   List<Nota> get favoritas => _notas.where((n) =>
       n.isFavorita &&
       !n.isApagada &&
       !n.isArquivada &&
       (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
 
-  /// Notas arquivadas (não apagadas, não vazias)
-  /// Exibidas na aba "Arquivo"
-  List<Nota> get arquivadas => _notas.where((n) =>
-      n.isArquivada &&
-      !n.isApagada &&
-      (n.titulo.isNotEmpty || n.conteudo.isNotEmpty)).toList();
-
-  /// Notas apagadas (na lixeira)
-  /// Exibidas na aba "Lixeira"
+  /// Notas apagadas (na lixeira) — busca não se aplica à lixeira
   List<Nota> get lixeira => _notas.where((n) => n.isApagada).toList();
 
-  /// Getter para a nota sendo editada
-  /// Retorna null se está criando nova nota
+  /// Nota sendo editada no momento
   Nota? get notaEmEdicao => _notaEmEdicao;
 
   // ===== MÉTODOS DE GERENCIAMENTO DE ESTADO =====
 
-  /// Define qual nota está sendo editada
-  /// Se nota == null, o modo é "criação"
   void setNotaEmEdicao(Nota? nota) {
     _notaEmEdicao = nota;
+    notifyListeners();
+  }
+
+  // Atualiza a query de busca e notifica a UI para refiltragem imediata
+  void setSearchQuery(String query) {
+    _searchQuery = query;
     notifyListeners();
   }
 

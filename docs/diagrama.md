@@ -136,6 +136,9 @@ classDiagram
         class FavoriteService {
             +toggleFavorita()
         }
+        class SearchService {
+            +buscar(List notas, String query) List
+        }
         class TrashService {
             +apagarNota()
             +restaurarNota()
@@ -154,6 +157,7 @@ classDiagram
 
     NotaViewModel --> NotaRepository : usa
     NotaViewModel --> FavoriteService : delega
+    NotaViewModel --> SearchService : delega
     NotaViewModel --> TrashService : delega
     NotaViewModel --> ArchiveService : delega
     NotaViewModel --> NoteEditorService : delega
