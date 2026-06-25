@@ -9,7 +9,7 @@ arquitetura de software, boas práticas e versionamento com Git.
 
 ## Status
 
-**MVP completo** — todas as funcionalidades principais estão implementadas e funcionais.
+**MVP completo** — funcionalidades principais implementadas. Em fase de expansão e adaptação para Android.
 
 ## Funcionalidades (MVP)
 
@@ -25,9 +25,14 @@ arquitetura de software, boas práticas e versionamento com Git.
 
 ✅ **Lixeira**
 - Exclusão soft (move para lixeira, não deleta de verdade)
-- Permanece por tempo indeterminado (futura implementação de countdown 30 dias)
+- Exclusão automática após 30 dias na lixeira (`limparExpiradas` roda na inicialização)
 - Restauração mantém estado anterior (se era arquivada, volta ao arquivo)
-- Exclusão permanente com um clique
+- Exclusão permanente com confirmação
+
+✅ **Busca**
+- Filtragem em tempo real por título e conteúdo
+- Isolada por aba — buscar em "Anotações" não afeta "Arquivo"
+- Limpa automaticamente ao trocar de aba
 
 ✅ **Interface**
 - Três abas: Anotações, Arquivo, Lixeira
@@ -80,8 +85,8 @@ View  →  ViewModel  →  Services  →  Repository  →  Hive
 ### Padrões utilizados
 
 - **Repository Pattern** — abstração entre lógica e persistência
-- **Service Layer** — regras de negócio isoladas do ViewModel (TrashService, ArchiveService, NoteEditorService)
-- **Soft Delete** — exclusão lógica com flag `isApagada` (futuro: countdown 30 dias no TrashService)
+- **Service Layer** — regras de negócio isoladas do ViewModel (`TrashService`, `ArchiveService`, `NoteEditorService`, `FavoriteService`, `SearchService`)
+- **Soft Delete** — exclusão lógica com flag `isApagada` + `apagadaEm` (timestamp para expiração de 30 dias)
 - **Change Notifier** — reatividade: Views escutam mudanças no ViewModel
 - **Debounce** — salvamento automático após 5s de inatividade
 - **Injeção de Dependência** — serviços e ViewModel recebem Repository no construtor
@@ -143,9 +148,9 @@ anotai/
 ## Mudanças principais (MVP)
 
 ### Modelo Nota
-- **Removido:** `DateTime? apagadaEm`
-- **Adicionado:** `bool isApagada` (soft delete com countdown 30 dias)
-- **Estados:** Agora são independentes (`isFavorita`, `isArquivada`, `isApagada`)
+- **Estados independentes:** `isFavorita`, `isArquivada`, `isApagada`
+- **`isApagada`** — soft delete com lixeira de 30 dias
+- **`apagadaEm`** — timestamp de quando a nota foi para a lixeira; usado pelo `TrashService.limparExpiradas()`
 - **Serialização:** `toMap()` e `fromMap()` para persistência Hive
 
 ### ViewModel
@@ -163,24 +168,47 @@ anotai/
 
 | Fase | Feature | Status |
 |------|---------|--------|
-| **Fase 2** | Busca por título/conteúdo | ⏳ Planejado |
+| **Fase 2** | Busca por título/conteúdo | ✅ Concluído |
 | | Aba dedicada "Favoritas" | ⏳ Planejado |
 | | Diálogo de confirmação + Undo de exclusão | ✅ Concluído |
-| | Countdown de 30 dias na lixeira | ⏳ Planejado |
+| | Countdown de 30 dias na lixeira | ✅ Concluído |
 | | Melhorias na UI — linguagem de design consistente | ✅ Concluído |
 | | Contagem de caracteres/palavras na edição | ✅ Concluído |
-| **Fase 3** | Lock/unlock (modo read-only) | ⏳ Planejado |
+| | Exportação PDF | ⏳ Planejado |
+| **Fase 3** | Suporte a imagens nas anotações | ⏳ Planejado |
+| | Lock/unlock (modo read-only) | ⏳ Planejado |
 | | Histórico de versões (reverter estado) | ⏳ Planejado |
-| | Suporte a imagens nas anotações | ⏳ Planejado |
 | | Tags/categorias | ⏳ Planejado |
 | | Anotações criptografadas | ⏳ Planejado |
 | | Exportação/backup manual | ⏳ Planejado |
 | | Modo escuro (dark mode) | ⏳ Planejado |
-| **Fase 4** | App Android nativo | ⏳ Planejado |
-| | Autenticação biométrica (digital/face) | ⏳ Planejado |
+| **Fase 4** | Autenticação biométrica (digital/face) | ⏳ Planejado |
 | | Sincronização entre dispositivos | ⏳ Planejado |
-| | Offline-first com sync | ⏳ Planejado |
 | | Resolução de conflitos de sincronização | ⏳ Planejado |
+
+## TODO — Pendências imediatas
+
+### Android — ajustes de layout (identificados no primeiro teste)
+
+- [ ] **EditorView**: header sobreposto pela barra de sistema (relógio, câmera, bateria) — adicionar `SafeArea` no body
+- [ ] **HomeHeader**: wordmark "Anotai" quebrando linha em telas estreitas — largura da barra de busca precisa ser responsiva
+- [ ] **HomeView**: espaçamento extra antes das tiles — `ListView.builder` aplicando padding do sistema automaticamente
+
+### MVP
+
+- [ ] **Exportação PDF** — último item formal do MVP pendente
+
+### UX / Melhorias
+
+- [ ] **SettingsView** — tela de configurações (botão existe no header, sem destino)
+- [ ] **Aba Favoritas** — aba dedicada na DockBar para notas marcadas como favoritas
+- [ ] **Valores responsivos (clamp)** — `AppTheme` usa valores fixos intermediários; implementar `MediaQuery`-based clamp para fontes, paddings e espaçamentos
+
+### Adiado (depende de outra feature)
+
+- [ ] **Dialog "apagar nota esvaziada"** — exibir confirmação quando o usuário apaga todo o conteúdo de uma nota existente; adiado até o histórico de versões estar implementado (sem ele, cancelar o dialog não restaura o conteúdo)
+
+---
 
 ### Notas sobre o Roadmap
 
