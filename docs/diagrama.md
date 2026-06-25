@@ -13,6 +13,7 @@ classDiagram
         +bool isFavorita
         +bool isArquivada
         +bool isApagada
+        +DateTime? apagadaEm
         +toMap() Map
         +fromMap() Nota
     }
@@ -143,7 +144,7 @@ classDiagram
             +apagarNota()
             +restaurarNota()
             +deletarPermanentemente()
-            +limparExpiradas()
+            +limparExpiradas(List notas) List
         }
         class ArchiveService {
             +arquivarNota()

@@ -120,9 +120,10 @@ class NotaViewModel extends ChangeNotifier {
   /// 3. Armazena em _notas
   /// 4. Notifica listeners para reconstruir a UI
   Future<void> carregarNotas() async {
-    // Busca todas as notas do banco (inclui apagadas, arquivadas, etc.)
     _notas = await _repository.buscarTodas();
-    // Notifica a UI para se reconstruir
+    final expiradas = await _trashService.limparExpiradas(_notas);
+    final expiradaIds = expiradas.map((n) => n.id).toSet();
+    _notas.removeWhere((n) => expiradaIds.contains(n.id));
     notifyListeners();
   }
 

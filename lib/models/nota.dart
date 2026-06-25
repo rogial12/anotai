@@ -39,6 +39,10 @@ class Nota {
   // Ao restaurar, volta com isArquivada no mesmo estado que era antes
   bool isApagada;
 
+  // Data em que a nota foi movida para a lixeira (null = não está na lixeira)
+  // Usada pelo TrashService para calcular expiração de 30 dias
+  DateTime? apagadaEm;
+
   /// Construtor da Nota
   ///
   /// Parâmetros:
@@ -59,6 +63,7 @@ class Nota {
     this.isFavorita = false,
     this.isArquivada = false,
     this.isApagada = false,
+    this.apagadaEm,
   });
 
   /// toMap: converte a nota em um mapa (para salvar no banco)
@@ -84,6 +89,7 @@ class Nota {
       'isFavorita': isFavorita,
       'isArquivada': isArquivada,
       'isApagada': isApagada,
+      'apagadaEm': apagadaEm?.toIso8601String(),
     };
   }
 
@@ -111,6 +117,9 @@ class Nota {
       isFavorita: map['isFavorita'] ?? false,
       isArquivada: map['isArquivada'] ?? false,
       isApagada: map['isApagada'] ?? false,
+      apagadaEm: map['apagadaEm'] != null
+          ? DateTime.parse(map['apagadaEm'])
+          : null,
     );
   }
 }
