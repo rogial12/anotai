@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import '../../styles/app_theme.dart';
 
 // Cabeçalho da HomeView: wordmark à esquerda, busca e configurações à direita.
-// Widget burro — recebe apenas o callback de configurações.
+// Widget burro — recebe callbacks e o controller do campo de busca.
 class HomeHeader extends StatelessWidget {
   final VoidCallback onSettings;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
 
-  const HomeHeader({super.key, required this.onSettings});
+  const HomeHeader({
+    super.key,
+    required this.onSettings,
+    required this.searchController,
+    required this.onSearchChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,24 +33,35 @@ class HomeHeader extends StatelessWidget {
           ),
 
           // Campo de busca em pílula
-          Container(
+          SizedBox(
             height: 38,
             width: 200,
-            decoration: BoxDecoration(
-              color: AppTheme.paper2,
-              borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-              border: Border.all(color: AppTheme.line),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Icon(Icons.search, size: 18, color: AppTheme.faint),
-                const SizedBox(width: 8),
-                Text(
-                  'Buscar',
-                  style: AppTheme.meta.copyWith(color: AppTheme.faint),
+            child: TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              style: AppTheme.meta.copyWith(color: AppTheme.ink),
+              decoration: InputDecoration(
+                hintText: 'Buscar',
+                hintStyle: AppTheme.meta.copyWith(color: AppTheme.faint),
+                prefixIcon: const Icon(Icons.search, size: 18, color: AppTheme.faint),
+                prefixIconConstraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                filled: true,
+                fillColor: AppTheme.paper2,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                  borderSide: const BorderSide(color: AppTheme.line),
                 ),
-              ],
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                  borderSide: const BorderSide(color: AppTheme.line),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+                  borderSide: const BorderSide(color: AppTheme.accent),
+                ),
+              ),
             ),
           ),
 
@@ -54,7 +72,7 @@ class HomeHeader extends StatelessWidget {
             icon: const Icon(Icons.settings_outlined),
             color: AppTheme.faint,
             tooltip: 'Configurações',
-            onPressed: onSettings, // TODO: navegar para SettingsView
+            onPressed: onSettings,
           ),
         ],
       ),

@@ -31,6 +31,15 @@ class _HomeViewState extends State<HomeView> {
   // Rastreia qual aba está selecionada: 0 = Anotações, 1 = Arquivo, 2 = Lixeira
   int _selectedTabIndex = 0;
 
+  // Controller do campo de busca — necessário para limpar o texto ao trocar de aba
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,6 +70,8 @@ class _HomeViewState extends State<HomeView> {
                 onSettings: () {
                   // TODO: navegar para SettingsView
                 },
+                searchController: _searchController,
+                onSearchChanged: (query) => viewModel.setSearchQuery(query),
               ),
 
               // Cabeçalho da seção: título + contador (sempre visível)
@@ -101,6 +112,9 @@ class _HomeViewState extends State<HomeView> {
       bottomNavigationBar: DockBar(
         selectedIndex: _selectedTabIndex,
         onTabChanged: (index) {
+          final viewModel = Provider.of<NotaViewModel>(context, listen: false);
+          _searchController.clear();
+          viewModel.setSearchQuery('');
           setState(() {
             _selectedTabIndex = index;
           });
