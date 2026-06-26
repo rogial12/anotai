@@ -62,7 +62,10 @@ class _HomeViewState extends State<HomeView> {
             tituloSecao = 'Lixeira';
           }
 
-          return Column(
+          return SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header do app: wordmark + busca + configurações
@@ -106,6 +109,7 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ),
             ],
+          ),
           );
         },
       ),

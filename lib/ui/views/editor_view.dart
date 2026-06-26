@@ -306,7 +306,10 @@ class _EditorViewState extends State<EditorView> {
             tooltip: 'Salvar',
             child: const Icon(Icons.save_rounded),
           ),
-          body: Column(
+          body: SafeArea(
+            top: true,
+            bottom: false,
+            child: Column(
             children: [
               EditorHeader(
                 title: notaEmEdicao?.titulo ?? '',
@@ -360,6 +363,7 @@ class _EditorViewState extends State<EditorView> {
                 ),
               ),
             ],
+          ),
           ),
         );
       },
