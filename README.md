@@ -43,7 +43,6 @@ arquitetura de software, boas práticas e versionamento com Git.
 - Design system centralizado (`AppTheme`) com cores, tipografia, raios, sombras e espaçamentos
 
 **Planejado para o futuro (Fase 2+)**
-- Busca por título ou conteúdo
 - Aba dedicada para favoritas
 - Lock/unlock de notas (modo read-only)
 - Histórico de versões (reverter para estado anterior)
@@ -63,9 +62,9 @@ Padrão **MVVM** (Model-View-ViewModel) com **Service Layer**, camadas bem defin
 
 ```
 lib/
-├── models/         # Nota: classe de dados com serialização
-├── repositories/   # NotaRepository (interface) + LocalNotaRepository (Hive)
-├── services/       # Regras de negócio: TrashService, ArchiveService, NoteEditorService
+├── models/         # Nota, Categoria: classes de dados com serialização
+├── repositories/   # NotaRepository + CategoriaRepository (interfaces) + implementações Hive
+├── services/       # Regras de negócio: TrashService, ArchiveService, NoteEditorService, CategoriaService
 ├── viewmodels/     # NotaViewModel: estado reativo, ChangeNotifier, delega para Services
 ├── ui/             # Tudo relacionado à interface
 │   ├── views/      # HomeView, EditorView: orquestram a tela
@@ -85,7 +84,8 @@ View  →  ViewModel  →  Services  →  Repository  →  Hive
 ### Padrões utilizados
 
 - **Repository Pattern** — abstração entre lógica e persistência
-- **Service Layer** — regras de negócio isoladas do ViewModel (`TrashService`, `ArchiveService`, `NoteEditorService`, `FavoriteService`, `SearchService`)
+- **Service Layer** — regras de negócio isoladas do ViewModel (`TrashService`, `ArchiveService`, `NoteEditorService`, `FavoriteService`, `SearchService`, `CategoriaService`)
+- **Entity with ID** — `Categoria` é uma entidade com ID próprio; notas armazenam `categoriaIds` (lista de IDs), não os nomes — renomear uma categoria não exige atualizar as notas
 - **Soft Delete** — exclusão lógica com flag `isApagada` + `apagadaEm` (timestamp para expiração de 30 dias)
 - **Change Notifier** — reatividade: Views escutam mudanças no ViewModel
 - **Debounce** — salvamento automático após 5s de inatividade
@@ -119,14 +119,21 @@ flutter run -d chrome
 ```
 anotai/
 ├── lib/
-│   ├── models/nota.dart              # Modelo com toMap/fromMap
+│   ├── models/
+│   │   ├── nota.dart                 # Modelo com toMap/fromMap; inclui categoriaIds
+│   │   └── categoria.dart            # Entidade Categoria com id + nome
 │   ├── repositories/
 │   │   ├── nota_repository.dart      # Interface (contrato)
-│   │   └── local_nota_repository.dart # Implementação Hive
+│   │   ├── local_nota_repository.dart # Implementação Hive
+│   │   ├── categoria_repository.dart  # Interface (contrato)
+│   │   └── local_categoria_repository.dart # Implementação Hive (box 'categorias')
 │   ├── services/
-│   │   ├── trash_service.dart        # Soft delete, restauração, exclusão permanente, countdown (futuro)
+│   │   ├── trash_service.dart        # Soft delete, restauração, exclusão permanente
 │   │   ├── archive_service.dart      # Arquivamento e desarquivamento
-│   │   └── note_editor_service.dart  # Criação de nota vazia, salvamento
+│   │   ├── note_editor_service.dart  # Criação de nota vazia, salvamento
+│   │   ├── favorite_service.dart     # Toggle de favorita
+│   │   ├── search_service.dart       # Filtro em memória (stateless)
+│   │   └── categoria_service.dart    # Criar, renomear, deletar categorias
 │   ├── viewmodels/nota_viewmodel.dart # Estado reativo, delega operações para Services
 │   ├── ui/
 │   │   ├── views/
@@ -169,18 +176,17 @@ anotai/
 | Fase | Feature | Status |
 |------|---------|--------|
 | **Fase 2** | Busca por título/conteúdo | ✅ Concluído |
-| | Aba dedicada "Favoritas" | ⏳ Planejado |
+| | Chips de categorias (inclui Favoritas) | 🔄 Em andamento |
 | | Diálogo de confirmação + Undo de exclusão | ✅ Concluído |
 | | Countdown de 30 dias na lixeira | ✅ Concluído |
 | | Melhorias na UI — linguagem de design consistente | ✅ Concluído |
 | | Contagem de caracteres/palavras na edição | ✅ Concluído |
-| | Exportação PDF | ⏳ Planejado |
-| **Fase 3** | Suporte a imagens nas anotações | ⏳ Planejado |
+| **Fase 3** | Exportação PDF | ⏳ Planejado |
+| | Exportação/backup manual | ⏳ Planejado |
+| | Suporte a imagens nas anotações | ⏳ Planejado |
 | | Lock/unlock (modo read-only) | ⏳ Planejado |
 | | Histórico de versões (reverter estado) | ⏳ Planejado |
-| | Tags/categorias | ⏳ Planejado |
 | | Anotações criptografadas | ⏳ Planejado |
-| | Exportação/backup manual | ⏳ Planejado |
 | | Modo escuro (dark mode) | ⏳ Planejado |
 | **Fase 4** | Autenticação biométrica (digital/face) | ⏳ Planejado |
 | | Sincronização entre dispositivos | ⏳ Planejado |
@@ -190,8 +196,8 @@ anotai/
 
 ### Android — ajustes de layout (identificados no primeiro teste)
 
-- [ ] **EditorView**: header sobreposto pela barra de sistema (relógio, câmera, bateria) — adicionar `SafeArea` no body
-- [ ] **HomeHeader**: wordmark "Anotai" quebrando linha em telas estreitas — largura da barra de busca precisa ser responsiva
+- [x] **EditorView**: header sobreposto pela barra de sistema — `SafeArea(top: true)` adicionado ao body
+- [x] **HomeHeader**: wordmark quebrando linha — refatorado para `StatefulWidget` com dois modos (normal/busca); wordmark com tamanho dinâmico via `MediaQuery`
 - [ ] **HomeView**: espaçamento extra antes das tiles — `ListView.builder` aplicando padding do sistema automaticamente
 
 ### MVP

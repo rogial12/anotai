@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'repositories/local_categoria_repository.dart';
 import 'repositories/local_nota_repository.dart';
 import 'services/archive_service.dart';
+import 'services/categoria_service.dart';
 import 'services/favorite_service.dart';
 import 'services/note_editor_service.dart';
 import 'services/search_service.dart';
@@ -16,6 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('notas');
+  await Hive.openBox('categorias');
   runApp(const AnotaiApp());
 }
 
@@ -25,19 +28,27 @@ class AnotaiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        // Cria o repositório uma vez e o compartilha entre ViewModel e serviços
-        final repo = LocalNotaRepository();
-        return NotaViewModel(
-          repo,
-          noteEditorService: NoteEditorService(repo),
-          archiveService: ArchiveService(repo),
-          trashService: TrashService(repo),
-          favoriteService: FavoriteService(repo),
-          searchService: SearchService(),
-        )..carregarNotas();
-      },
+    return MultiProvider(
+      providers: [
+        // ViewModel principal: gerencia notas e delega para os serviços de nota
+        ChangeNotifierProvider(
+          create: (_) {
+            final repo = LocalNotaRepository();
+            return NotaViewModel(
+              repo,
+              noteEditorService: NoteEditorService(repo),
+              archiveService: ArchiveService(repo),
+              trashService: TrashService(repo),
+              favoriteService: FavoriteService(repo),
+              searchService: SearchService(),
+            )..carregarNotas();
+          },
+        ),
+        // CategoriaService disponível na árvore de widgets para uso futuro
+        Provider<CategoriaService>(
+          create: (_) => CategoriaService(LocalCategoriaRepository()),
+        ),
+      ],
       child: MaterialApp(
         title: 'Anotai',
         debugShowCheckedModeBanner: false,

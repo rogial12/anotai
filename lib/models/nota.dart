@@ -43,6 +43,10 @@ class Nota {
   // Usada pelo TrashService para calcular expiração de 30 dias
   DateTime? apagadaEm;
 
+  // IDs das categorias às quais esta nota pertence (lista vazia = sem categoria)
+  // Armazena IDs, não nomes — renomear uma categoria não exige atualizar as notas
+  List<String> categoriaIds;
+
   /// Construtor da Nota
   ///
   /// Parâmetros:
@@ -64,7 +68,8 @@ class Nota {
     this.isArquivada = false,
     this.isApagada = false,
     this.apagadaEm,
-  });
+    List<String>? categoriaIds,
+  }) : categoriaIds = categoriaIds ?? [];
 
   /// toMap: converte a nota em um mapa (para salvar no banco)
   ///
@@ -90,6 +95,7 @@ class Nota {
       'isArquivada': isArquivada,
       'isApagada': isApagada,
       'apagadaEm': apagadaEm?.toIso8601String(),
+      'categoriaIds': categoriaIds,
     };
   }
 
@@ -120,6 +126,8 @@ class Nota {
       apagadaEm: map['apagadaEm'] != null
           ? DateTime.parse(map['apagadaEm'])
           : null,
+      // ?? [] garante compatibilidade com notas salvas antes deste campo existir
+      categoriaIds: List<String>.from(map['categoriaIds'] ?? []),
     );
   }
 }

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../styles/app_theme.dart';
 
-// Cabeçalho da HomeView: gerencia o modo normal (wordmark + ícones) e o modo busca.
-// StatefulWidget porque mantém _isSearching como estado interno de UI.
+// StatefulWidget porque precisa lembrar se está no modo busca ou não
 class HomeHeader extends StatefulWidget {
   final VoidCallback onSettings;
   final TextEditingController searchController;
@@ -16,39 +15,44 @@ class HomeHeader extends StatefulWidget {
     required this.onSearchChanged,
   });
 
+  // Cria o State que vai guardar a memória do widget
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
 }
 
 class _HomeHeaderState extends State<HomeHeader> {
+  // Memória interna: false = modo normal, true = modo busca
   bool _isSearching = false;
+
+  // Objeto que representa o foco do teclado no campo de busca
   final FocusNode _searchFocus = FocusNode();
 
   @override
   void dispose() {
-    _searchFocus.dispose();
+    _searchFocus.dispose(); // libera o FocusNode da memória quando o widget some
     super.dispose();
   }
 
   void _openSearch() {
-    setState(() => _isSearching = true);
-    // Aguarda o próximo frame para o TextField existir antes de pedir foco
+    setState(() => _isSearching = true); // troca para modo busca e reconstrói o widget
+    // Aguarda o próximo frame (o TextField precisa existir antes de receber foco)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _searchFocus.requestFocus();
+      _searchFocus.requestFocus(); // abre o teclado
     });
   }
 
   void _closeSearch() {
-    widget.searchController.clear();
-    widget.onSearchChanged('');
-    _searchFocus.unfocus();
-    setState(() => _isSearching = false);
+    widget.searchController.clear();  // apaga o texto do campo
+    widget.onSearchChanged('');       // avisa o ViewModel que a query voltou a ser vazia
+    _searchFocus.unfocus();           // fecha o teclado
+    setState(() => _isSearching = false); // volta ao modo normal e reconstrói
   }
 
   @override
   Widget build(BuildContext context) {
+    // Largura atual da tela em pixels lógicos (dp)
     final screenWidth = MediaQuery.of(context).size.width;
-    // Wordmark: 3% da largura da tela, travado entre 27px e 35px
+    // Tamanho do wordmark: 3% da largura, nunca menor que 27 nem maior que 35
     final wordmarkSize = (screenWidth * 0.03).clamp(27.0, 35.0);
 
     return Container(
@@ -59,20 +63,22 @@ class _HomeHeaderState extends State<HomeHeader> {
         AppTheme.headerPaddingH,
         AppTheme.headerPaddingBottom,
       ),
+      // Escolhe qual modo renderizar baseado em _isSearching
       child: _isSearching ? _buildSearchMode() : _buildNormalMode(wordmarkSize),
     );
   }
 
+  // Modo normal: wordmark + botão lupa + botão configurações
   Widget _buildNormalMode(double wordmarkSize) {
     return Row(
       children: [
-        Expanded(
+        Expanded( // ocupa todo o espaço horizontal disponível
           child: Text(
             'Anotai',
             style: GoogleFonts.bricolageGrotesque(
-              fontSize: wordmarkSize,
+              fontSize: wordmarkSize,              // tamanho dinâmico calculado acima
               fontWeight: FontWeight.w800,
-              letterSpacing: -0.025 * wordmarkSize,
+              letterSpacing: -0.025 * wordmarkSize, // espaçamento proporcional ao tamanho
               height: 1,
               color: AppTheme.ink,
             ),
@@ -82,28 +88,29 @@ class _HomeHeaderState extends State<HomeHeader> {
           icon: const Icon(Icons.search),
           color: AppTheme.faint,
           tooltip: 'Buscar',
-          onPressed: _openSearch,
+          onPressed: _openSearch, // abre o modo busca
         ),
         IconButton(
           icon: const Icon(Icons.settings_outlined),
           color: AppTheme.faint,
           tooltip: 'Configurações',
-          onPressed: widget.onSettings,
+          onPressed: widget.onSettings, // acessa parâmetro do StatefulWidget via widget.
         ),
       ],
     );
   }
 
+  // Modo busca: campo de texto expandido + botão fechar
   Widget _buildSearchMode() {
     return Row(
       children: [
-        Expanded(
+        Expanded( // campo ocupa todo o espaço antes do botão fechar
           child: SizedBox(
-            height: 38,
+            height: 38, // altura fixa para o campo de busca
             child: TextField(
-              controller: widget.searchController,
-              focusNode: _searchFocus,
-              onChanged: widget.onSearchChanged,
+              controller: widget.searchController, // controller vem da HomeView
+              focusNode: _searchFocus,             // conecta ao foco gerenciado aqui
+              onChanged: widget.onSearchChanged,   // notifica o ViewModel a cada tecla
               style: AppTheme.meta.copyWith(color: AppTheme.ink),
               decoration: InputDecoration(
                 hintText: 'Buscar',
@@ -134,7 +141,7 @@ class _HomeHeaderState extends State<HomeHeader> {
           icon: const Icon(Icons.close),
           color: AppTheme.faint,
           tooltip: 'Fechar busca',
-          onPressed: _closeSearch,
+          onPressed: _closeSearch, // fecha o modo busca
         ),
       ],
     );

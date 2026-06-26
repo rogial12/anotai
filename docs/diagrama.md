@@ -14,8 +14,16 @@ classDiagram
         +bool isArquivada
         +bool isApagada
         +DateTime? apagadaEm
+        +List categoriaIds
         +toMap() Map
         +fromMap() Nota
+    }
+
+    class Categoria {
+        +String id
+        +String nome
+        +toMap() Map
+        +fromMap() Categoria
     }
 
     class NotaViewModel {
@@ -52,6 +60,20 @@ classDiagram
         +deletar(String id)
     }
 
+    class CategoriaRepository {
+        <<interface>>
+        +buscarTodas() List
+        +salvar(Categoria categoria)
+        +deletar(String id)
+    }
+
+    class LocalCategoriaRepository {
+        -Box _box
+        +buscarTodas() List
+        +salvar(Categoria categoria)
+        +deletar(String id)
+    }
+
     namespace ui_views {
         class HomeView {
             -int _selectedTabIndex
@@ -77,6 +99,14 @@ classDiagram
     namespace ui_components_home {
         class HomeHeader {
             +VoidCallback onSettings
+            +TextEditingController searchController
+            +ValueChanged onSearchChanged
+            -bool _isSearching
+            -FocusNode _searchFocus
+            -_openSearch()
+            -_closeSearch()
+            -_buildNormalMode()
+            -_buildSearchMode()
         }
         class DockBar {
             +int selectedIndex
@@ -154,6 +184,12 @@ classDiagram
             +criarNotaVazia()
             +salvarNota()
         }
+        class CategoriaService {
+            +buscarTodas() List
+            +criar(String nome) Categoria
+            +renomear(Categoria categoria, String novoNome)
+            +deletar(String id)
+        }
     }
 
     NotaViewModel --> NotaRepository : usa
@@ -167,17 +203,20 @@ classDiagram
     ArchiveService --> NotaRepository : usa
     NoteEditorService --> NotaRepository : usa
     LocalNotaRepository ..|> NotaRepository : implementa
+    CategoriaService --> CategoriaRepository : usa
+    LocalCategoriaRepository ..|> CategoriaRepository : implementa
     HomeView --> NotaViewModel : observa
     EditorView --> NotaViewModel : observa
     NotaViewModel --> Nota : gerencia
+    Nota --> Categoria : referencia via categoriaIds
 ```
 
 ## Histórico de mudanças
 
 ### Modelo Nota
-- **Removido:** `DateTime? apagadaEm`
-- **Adicionado:** `bool isApagada` (soft delete com countdown 30 dias)
-- **Estados:** Agora são independentes (`isFavorita`, `isArquivada`, `isApagada`)
+- **Adicionado:** `bool isApagada` (soft delete)
+- **Adicionado:** `DateTime? apagadaEm` (timestamp de entrada na lixeira; `null` = fora da lixeira; usado por `limparExpiradas` para expiração de 30 dias)
+- **Estados:** Independentes (`isFavorita`, `isArquivada`, `isApagada`)
 - **Serialização:** `toMap()` e `fromMap()` para persistência Hive
 
 ### ViewModel
@@ -193,7 +232,18 @@ classDiagram
 - **EditorView:** `_saveAutomatically()` simplificado para uma chamada a `salvarNota()`; `_hasChanges` removido
 
 ### Camada Services (implementada)
-- **`TrashService`**: `apagarNota`, `restaurarNota`, `deletarPermanentemente` + `limparExpiradas` (TODO — expiração de 30 dias)
+- **`TrashService`**: `apagarNota`, `restaurarNota`, `deletarPermanentemente`, `limparExpiradas` (exclui permanentemente notas com mais de 30 dias na lixeira; chamado no `carregarNotas`)
 - **`ArchiveService`**: `arquivarNota`, `desarquivarNota`
 - **`NoteEditorService`**: `criarNotaVazia`, `salvarNota`
+- **`FavoriteService`**: `toggleFavorita`
+- **`SearchService`**: `buscar` (stateless, sem repositório — filtra lista em memória)
 - Todos os serviços recebem `NotaRepository` via injeção de dependência e são instanciados em `main.dart`
+
+### Categorias (Passo 1 — ajuste arquitetural)
+- **Novo modelo:** `Categoria { id, nome }` com `toMap`/`fromMap`
+- **Nova interface:** `CategoriaRepository` (mesmo contrato do `NotaRepository`)
+- **Nova implementação:** `LocalCategoriaRepository` (Hive, box `'categorias'`)
+- **Novo serviço:** `CategoriaService` — `criar`, `renomear`, `deletar`, `buscarTodas`; não gerencia associação nota↔categoria (responsabilidade do ViewModel)
+- **`Nota` atualizada:** novo campo `List<String> categoriaIds` (padrão `[]`; compatível com notas antigas via `?? []` no `fromMap`)
+- **`main.dart`:** `ChangeNotifierProvider` substituído por `MultiProvider`; `CategoriaService` disponível na árvore via `Provider<CategoriaService>`
+- **Decisão de design:** categorias armazenadas por ID nas notas (não por nome) — renomear uma categoria não exige atualizar nenhuma nota
