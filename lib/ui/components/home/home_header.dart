@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../styles/app_theme.dart';
 
-// Cabeçalho da HomeView: wordmark à esquerda, busca e configurações à direita.
-// Widget burro — recebe callbacks e o controller do campo de busca.
-class HomeHeader extends StatelessWidget {
+// Cabeçalho da HomeView: gerencia o modo normal (wordmark + ícones) e o modo busca.
+// StatefulWidget porque mantém _isSearching como estado interno de UI.
+class HomeHeader extends StatefulWidget {
   final VoidCallback onSettings;
   final TextEditingController searchController;
   final ValueChanged<String> onSearchChanged;
@@ -16,7 +17,40 @@ class HomeHeader extends StatelessWidget {
   });
 
   @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  bool _isSearching = false;
+  final FocusNode _searchFocus = FocusNode();
+
+  @override
+  void dispose() {
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  void _openSearch() {
+    setState(() => _isSearching = true);
+    // Aguarda o próximo frame para o TextField existir antes de pedir foco
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchFocus.requestFocus();
+    });
+  }
+
+  void _closeSearch() {
+    widget.searchController.clear();
+    widget.onSearchChanged('');
+    _searchFocus.unfocus();
+    setState(() => _isSearching = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Wordmark: 3% da largura da tela, travado entre 27px e 35px
+    final wordmarkSize = (screenWidth * 0.03).clamp(27.0, 35.0);
+
     return Container(
       color: AppTheme.card,
       padding: EdgeInsets.fromLTRB(
@@ -25,20 +59,51 @@ class HomeHeader extends StatelessWidget {
         AppTheme.headerPaddingH,
         AppTheme.headerPaddingBottom,
       ),
-      child: Row(
-        children: [
-          // Wordmark
-          Expanded(
-            child: Text('Anotai', style: AppTheme.wordmark),
-          ),
+      child: _isSearching ? _buildSearchMode() : _buildNormalMode(wordmarkSize),
+    );
+  }
 
-          // Campo de busca em pílula
-          SizedBox(
+  Widget _buildNormalMode(double wordmarkSize) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            'Anotai',
+            style: GoogleFonts.bricolageGrotesque(
+              fontSize: wordmarkSize,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.025 * wordmarkSize,
+              height: 1,
+              color: AppTheme.ink,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          color: AppTheme.faint,
+          tooltip: 'Buscar',
+          onPressed: _openSearch,
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings_outlined),
+          color: AppTheme.faint,
+          tooltip: 'Configurações',
+          onPressed: widget.onSettings,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchMode() {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
             height: 38,
-            width: 200,
             child: TextField(
-              controller: searchController,
-              onChanged: onSearchChanged,
+              controller: widget.searchController,
+              focusNode: _searchFocus,
+              onChanged: widget.onSearchChanged,
               style: AppTheme.meta.copyWith(color: AppTheme.ink),
               decoration: InputDecoration(
                 hintText: 'Buscar',
@@ -64,18 +129,14 @@ class HomeHeader extends StatelessWidget {
               ),
             ),
           ),
-
-          const SizedBox(width: 12),
-
-          // Botão de configurações
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            color: AppTheme.faint,
-            tooltip: 'Configurações',
-            onPressed: onSettings,
-          ),
-        ],
-      ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.close),
+          color: AppTheme.faint,
+          tooltip: 'Fechar busca',
+          onPressed: _closeSearch,
+        ),
+      ],
     );
   }
 }
