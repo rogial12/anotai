@@ -1,5 +1,7 @@
 # Anotai: um app de notas feito por quem nunca programou de verdade
 
+Publicado originalmente em 27/06/2026
+
 A programação nunca foi meu forte, mas minha jornada acadêmica nunca se distanciou tanto desse tema. As várias tentativas de aprender a codificar foram frustradas, exceto pelas provas em que fui obrigado a decorar código em Java para transformar diagramas de classes prontos em código rudimentar escrito em papel. Provavelmente, não foi o melhor método de ensino – e, por isso, o trauma.
 
 Apesar disso, a gestão de processos, o design de sistemas e o gerenciamento de produtos sempre estiveram no meu radar. O assunto parece unir aquilo que sei fazer de melhor – comunicar, interpretar e vislumbrar projetos – com aquilo que estudo todos os dias na faculdade. Porém, todas as tentativas de pisar nisso pareciam empacadas na etapa de documentação – diagramas de classe, fluxogramas, BPMNs e mais. Nunca consegui ir para além disso.
@@ -78,3 +80,17 @@ Com a Service Layer, foi possível implementar features diferentes e mais refina
 Consequentemente, percebi que o Claude passou a interpretar melhor o código. As conversas com o chatbot pareciam mais claras e as interações com ele foram mais rápidas e aparentemente econômicas em tokens. Em vez de olhar para uma classe gigante para encontrar um método, ele sabia exatamente onde procurar métodos de uma determinada feature e, com classes menores, a leitura e refatoração aconteciam com mais agilidade.
 
 Dada a consistência do código atual, bem como a implementação de features que complementam à experiência do usuário (separação por tags, exclusão automática e mais), percebi a necessidade de iniciar os testes no aplicativo. Nessa parte, não tive experiência anterior, então prevejo que será um longo caminho até a conclusão.
+
+## Volto todos os dias
+
+Minha jornada acadêmica está longe de acabar e não é nada tranquila, mas o processo de desenvolvimento do Anotai, de alguma forma, me fisgou. Todos os dias volto para o VS Code para conferir o backlog e gerenciar o débito técnico do aplicativo – embora pequenos, significativos para mim. Conheço meu aplicativo de cabo a rabo, apesar de o Claude ser o principal responsável pelo código.
+
+Se sintaxe e a programação crua eram um problema quase emocional, a intermediação do projeto com uma IA generativa parece ser um remédio válido. O trauma ainda existe, mas não ao ponto de tremer ao ver um diagrama de classes. Além disso, o tom aparentemente elogioso do Claude e às intervenções do meu terapeuta me fazem acreditar, ao menos um pouco, que estou cada vez mais preparado para encarar uma carreira como Product Manager.
+
+Posso não ser um bom programador, mas eu ainda sei das coisas!
+
+Observação do autor:
+
+Retornarei a este artigo para adicionar atualizações acerca do andamento do projeto no futuro. Portanto, adicionarei a data da publicação original e a data das modificações posteriores.
+
+Não deixe de conferir o repositório do GitHub do Anotai com a documentação completa e uma versão mais recente do projeto.
