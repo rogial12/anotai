@@ -7,6 +7,7 @@ import '../components/home/empty_state.dart';
 import '../components/home/section_header.dart';
 import '../components/home/note_tile.dart';
 import '../components/home/dock_bar.dart';
+import '../components/home/chip_bar.dart';
 import '../components/home/home_header.dart';
 import '../styles/app_theme.dart';
 
@@ -34,10 +35,31 @@ class _HomeViewState extends State<HomeView> {
   // Controller do campo de busca — necessário para limpar o texto ao trocar de aba
   final TextEditingController _searchController = TextEditingController();
 
+  // Chips selecionadas — 'todos' ativo por padrão (sem filtro)
+  Set<String> _selectedChips = {'todos'};
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onChipTapped(String chipId) {
+    setState(() {
+      if (chipId == 'todos') {
+        // "Todos" limpa qualquer filtro ativo
+        _selectedChips = {'todos'};
+      } else {
+        final next = Set<String>.from(_selectedChips)..remove('todos');
+        if (next.contains(chipId)) {
+          next.remove(chipId);
+        } else {
+          next.add(chipId);
+        }
+        // Se o usuário desmarcar tudo, volta para "Todos"
+        _selectedChips = next.isEmpty ? {'todos'} : next;
+      }
+    });
   }
 
   @override
@@ -83,6 +105,13 @@ class _HomeViewState extends State<HomeView> {
                 count: notasParaExibir.length,
               ),
 
+              // Chips de filtro — apenas nas abas Anotações e Arquivo
+              if (_selectedTabIndex != 2)
+                ChipBar(
+                  selectedChips: _selectedChips,
+                  onChipTapped: _onChipTapped,
+                ),
+
               // Conteúdo: estado vazio ou lista de notas
               if (notasParaExibir.isEmpty)
                 Expanded(child: EmptyState(tabIndex: _selectedTabIndex))
@@ -121,6 +150,7 @@ class _HomeViewState extends State<HomeView> {
           viewModel.setSearchQuery('');
           setState(() {
             _selectedTabIndex = index;
+            _selectedChips = {'todos'};
           });
         },
       ),
