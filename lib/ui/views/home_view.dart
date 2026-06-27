@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../models/categoria.dart';
+import '../../services/categoria_service.dart';
 import '../../viewmodels/nota_viewmodel.dart';
 import '../../models/nota.dart';
 import 'editor_view.dart';
 import '../components/home/empty_state.dart';
+import '../components/home/nova_categoria_dialog.dart';
 import '../components/home/section_header.dart';
 import '../components/home/note_tile.dart';
 import '../components/home/dock_bar.dart';
@@ -37,6 +40,38 @@ class _HomeViewState extends State<HomeView> {
 
   // Chips selecionadas — 'todos' ativo por padrão (sem filtro)
   Set<String> _selectedChips = {'todos'};
+
+  // Lista de categorias carregada do CategoriaService
+  List<Categoria> _categorias = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // addPostFrameCallback: adia o acesso ao Provider para depois do primeiro frame,
+    // quando o context já está plenamente conectado à árvore de widgets.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _carregarCategorias();
+    });
+  }
+
+  Future<void> _carregarCategorias() async {
+    final service = Provider.of<CategoriaService>(context, listen: false);
+    final lista = await service.buscarTodas();
+    if (mounted) setState(() => _categorias = lista);
+  }
+
+  Future<void> _showNovaCategoriaDialog() async {
+    final service = Provider.of<CategoriaService>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (_) => NovaCategoriaDialog(
+        onCriar: (nome) async {
+          await service.criar(nome);
+          if (mounted) _carregarCategorias();
+        },
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -122,6 +157,8 @@ class _HomeViewState extends State<HomeView> {
                 ChipBar(
                   selectedChips: _selectedChips,
                   onChipTapped: _onChipTapped,
+                  categorias: _categorias,
+                  onAddTapped: _showNovaCategoriaDialog,
                 ),
 
               // Conteúdo: estado vazio ou lista de notas

@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../../models/categoria.dart';
 import '../../styles/app_theme.dart';
 
 // Barra de chips de filtro exibida abaixo do SectionHeader.
-// Chips fixas: "Todos" (sempre primeira) e "Favoritas" (sempre segunda).
-// Chip "+" é placeholder por enquanto — sem ação.
-// Chips personalizadas (categorias do usuário) serão adicionadas nos passos seguintes.
+// Chips fixas: "Todos" (primeira) e "Favoritas" (segunda).
+// Chips de categorias do usuário ficam entre "Favoritas" e "+".
+// Chip "+" abre o dialog de criação de categoria quando onAddTapped é fornecido.
 class ChipBar extends StatelessWidget {
-  // Conjunto de IDs das chips selecionadas. IDs reservados: 'todos', 'favoritas'.
   final Set<String> selectedChips;
-
-  // Chamado quando o usuário toca em uma chip, passando o ID dela.
   final ValueChanged<String> onChipTapped;
+  final List<Categoria> categorias;
+  final VoidCallback? onAddTapped;
 
   const ChipBar({
     super.key,
     required this.selectedChips,
     required this.onChipTapped,
+    this.categorias = const [],
+    this.onAddTapped,
   });
 
   @override
@@ -39,8 +41,20 @@ class ChipBar extends StatelessWidget {
             isSelected: selectedChips.contains('favoritas'),
             onTap: () => onChipTapped('favoritas'),
           ),
+
+          // Chips de categorias personalizadas
+          ...categorias.map((cat) => Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: _FilterChip(
+              label: cat.nome,
+              id: cat.id,
+              isSelected: selectedChips.contains(cat.id),
+              onTap: () => onChipTapped(cat.id),
+            ),
+          )),
+
           const SizedBox(width: 8),
-          const _AddChip(),
+          _AddChip(onTap: onAddTapped),
         ],
       ),
     );
@@ -106,20 +120,25 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-// Chip "+" — placeholder sem ação. Será o hub de gerenciamento no Passo 5.
+// Chip "+" — abre o dialog de criação de categoria quando onTap é fornecido.
 class _AddChip extends StatelessWidget {
-  const _AddChip();
+  final VoidCallback? onTap;
+
+  const _AddChip({this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppTheme.paper2,
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
-        border: Border.all(color: AppTheme.line),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppTheme.paper2,
+          borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+          border: Border.all(color: AppTheme.line),
+        ),
+        child: const Icon(Icons.add_rounded, size: 14, color: AppTheme.faint),
       ),
-      child: const Icon(Icons.add_rounded, size: 14, color: AppTheme.faint),
     );
   }
 }
