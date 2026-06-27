@@ -204,4 +204,17 @@ class NotaViewModel extends ChangeNotifier {
     await _repository.salvar(nota);
     notifyListeners();
   }
+
+  // Remove um ID de categoria de todas as notas que o contêm.
+  // Chamado após deletar uma categoria — evita IDs órfãos nos dados.
+  // O(n) é aceitável aqui: deleção é rara e n (notas) é pequeno em prática.
+  Future<void> removerCategoriaDasNotas(String categoriaId) async {
+    final afetadas =
+        _notas.where((n) => n.categoriaIds.contains(categoriaId)).toList();
+    for (final nota in afetadas) {
+      nota.categoriaIds.remove(categoriaId);
+      await _repository.salvar(nota);
+    }
+    if (afetadas.isNotEmpty) notifyListeners();
+  }
 }

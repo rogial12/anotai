@@ -11,6 +11,8 @@ class ChipBar extends StatelessWidget {
   final ValueChanged<String> onChipTapped;
   final List<Categoria> categorias;
   final VoidCallback? onAddTapped;
+  // Long press numa chip de categoria → ação de gerenciamento (renomear/excluir)
+  final ValueChanged<Categoria>? onChipLongPressed;
 
   const ChipBar({
     super.key,
@@ -18,6 +20,7 @@ class ChipBar extends StatelessWidget {
     required this.onChipTapped,
     this.categorias = const [],
     this.onAddTapped,
+    this.onChipLongPressed,
   });
 
   @override
@@ -50,6 +53,9 @@ class ChipBar extends StatelessWidget {
               id: cat.id,
               isSelected: selectedChips.contains(cat.id),
               onTap: () => onChipTapped(cat.id),
+              onLongPress: onChipLongPressed != null
+                  ? () => onChipLongPressed!(cat)
+                  : null,
             ),
           )),
 
@@ -68,6 +74,7 @@ class _FilterChip extends StatelessWidget {
   final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _FilterChip({
     required this.label,
@@ -75,12 +82,14 @@ class _FilterChip extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.icon,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

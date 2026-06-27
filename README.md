@@ -22,6 +22,11 @@ arquitetura de software, boas práticas e versionamento com Git.
 - Arquivamento de notas em pasta dedicada
 - Desarquivamento com volta automática à aba original
 - Marcação de notas como favoritas
+- Categorias personalizadas com chips de filtro na tela inicial
+  - Criação, renomear e exclusão de categorias (hub de gerenciamento)
+  - Filtro AND multi-chip (ex: "Favoritas" + "Trabalho" ao mesmo tempo)
+  - Associação de categorias a notas pela EditorView
+  - Excluir categoria remove automaticamente o vínculo em todas as notas
 
 ✅ **Lixeira**
 - Exclusão soft (move para lixeira, não deleta de verdade)
@@ -42,11 +47,11 @@ arquitetura de software, boas práticas e versionamento com Git.
 - Indicador visual de favoritas (estrela)
 - Design system centralizado (`AppTheme`) com cores, tipografia, raios, sombras e espaçamentos
 
-**Planejado para o futuro (Fase 2+)**
-- Aba dedicada para favoritas
+**Planejado para o futuro (Fase 3+)**
 - Lock/unlock de notas (modo read-only)
 - Histórico de versões (reverter para estado anterior)
 - Suporte a imagens nas anotações
+- Exportação PDF e backup manual
 - Plataforma Android
 - Sincronização entre dispositivos
 
@@ -140,8 +145,9 @@ anotai/
 │   │   │   ├── home_view.dart        # Tela principal (3 abas)
 │   │   │   └── editor_view.dart      # Tela de edição (padrão "sempre editando")
 │   │   ├── components/
-│   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, etc.
-│   │   │   └── editor/               # EditorHeader
+│   │   │   ├── home/                 # NoteTile, DockBar, HomeHeader, ChipBar,
+│   │   │   │                         # GerenciarCategoriasDialog, RenomearCategoriaDialog
+│   │   │   └── editor/               # EditorHeader, CategoriasDialog
 │   │   ├── styles/app_theme.dart     # Tokens implementados: 16 cores, 13 estilos, raios, sombras, espaçamentos
 │   │   └── utils/formatters.dart     # Funções auxiliares puras: formatDate, wordCount, charCount
 │   └── main.dart                     # Entry point
@@ -176,7 +182,7 @@ anotai/
 | Fase | Feature | Status |
 |------|---------|--------|
 | **Fase 2** | Busca por título/conteúdo | ✅ Concluído |
-| | Chips de categorias (inclui Favoritas) | 🔄 Em andamento |
+| | Chips de categorias (inclui Favoritas) | ✅ Concluído |
 | | Diálogo de confirmação + Undo de exclusão | ✅ Concluído |
 | | Countdown de 30 dias na lixeira | ✅ Concluído |
 | | Melhorias na UI — linguagem de design consistente | ✅ Concluído |

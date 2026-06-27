@@ -29,11 +29,13 @@ classDiagram
     class NotaViewModel {
         -List _notas
         -Nota? _notaEmEdicao
+        -String _searchQuery
         +List notas
         +List favoritas
         +List arquivadas
         +List lixeira
         +Nota? notaEmEdicao
+        +String searchQuery
         +carregarNotas()
         +criarNotaVazia()
         +salvarNota()
@@ -44,6 +46,9 @@ classDiagram
         +desarquivarNota()
         +toggleFavorita()
         +setNotaEmEdicao()
+        +setSearchQuery()
+        +atualizarCategorias()
+        +removerCategoriaDasNotas()
     }
 
     class NotaRepository {
@@ -77,8 +82,14 @@ classDiagram
     namespace ui_views {
         class HomeView {
             -int _selectedTabIndex
-            -NotaViewModel viewModel
+            -Set _selectedChips
+            -List _categorias
             +build()
+            -_filtrarPorChips()
+            -_onChipTapped()
+            -_carregarCategorias()
+            -_showGerenciarCategoriasDialog()
+            -_showChipLongPressMenu()
             -_buildContextMenuItems()
         }
 
@@ -86,12 +97,12 @@ classDiagram
             -TextEditingController _titleController
             -TextEditingController _contentController
             -Timer? _debounceTimer
-            -NotaViewModel viewModel
             +build()
             -_onTextChanged()
             -_saveAutomatically()
             -_saveAndClose()
             -_showInfoDialog()
+            -_showCategoriasDialog()
             -_buildContextMenuItems()
         }
     }
@@ -103,10 +114,6 @@ classDiagram
             +ValueChanged onSearchChanged
             -bool _isSearching
             -FocusNode _searchFocus
-            -_openSearch()
-            -_closeSearch()
-            -_buildNormalMode()
-            -_buildSearchMode()
         }
         class DockBar {
             +int selectedIndex
@@ -127,6 +134,23 @@ classDiagram
         class EmptyState {
             +int tabIndex
         }
+        class ChipBar {
+            +Set selectedChips
+            +ValueChanged onChipTapped
+            +List categorias
+            +VoidCallback? onAddTapped
+            +ValueChanged? onChipLongPressed
+        }
+        class GerenciarCategoriasDialog {
+            +List categorias
+            +Function onCriar
+            +Function onRenomear
+            +Function onExcluir
+        }
+        class RenomearCategoriaDialog {
+            +Categoria categoria
+            +Function onRenomear
+        }
     }
 
     namespace ui_components_editor {
@@ -135,7 +159,13 @@ classDiagram
             +bool isFavorita
             +VoidCallback onBack
             +VoidCallback onToggleFavorita
+            +VoidCallback? onCategoriaTapped
             +List menuItems
+        }
+        class CategoriasDialog {
+            +Nota nota
+            +List categorias
+            +Function onSalvar
         }
     }
 
@@ -206,7 +236,13 @@ classDiagram
     CategoriaService --> CategoriaRepository : usa
     LocalCategoriaRepository ..|> CategoriaRepository : implementa
     HomeView --> NotaViewModel : observa
+    HomeView --> CategoriaService : carrega categorias
+    HomeView --> ChipBar : renderiza
+    HomeView --> GerenciarCategoriasDialog : abre
+    HomeView --> RenomearCategoriaDialog : abre (long press)
     EditorView --> NotaViewModel : observa
+    EditorView --> CategoriaService : carrega categorias
+    EditorView --> CategoriasDialog : abre
     NotaViewModel --> Nota : gerencia
     Nota --> Categoria : referencia via categoriaIds
 ```
@@ -247,3 +283,21 @@ classDiagram
 - **`Nota` atualizada:** novo campo `List<String> categoriaIds` (padrão `[]`; compatível com notas antigas via `?? []` no `fromMap`)
 - **`main.dart`:** `ChangeNotifierProvider` substituído por `MultiProvider`; `CategoriaService` disponível na árvore via `Provider<CategoriaService>`
 - **Decisão de design:** categorias armazenadas por ID nas notas (não por nome) — renomear uma categoria não exige atualizar nenhuma nota
+
+### Categorias (Passos 2–3 — chips de filtro)
+- **Novo componente:** `ChipBar` — barra horizontal com chips "Todos", "Favoritas", categorias personalizadas e "+"
+- **Chips fixas:** "Todos" (desativa filtros) e "Favoritas" sempre aparecem; não têm long press
+- **Multi-seleção AND:** selecionar múltiplas chips exige que a nota satisfaça todas as condições simultaneamente
+- **Filtro isolado por aba:** `_filtrarPorChips` aplicado às listas `notas` e `arquivadas`; lixeira não exibe chips
+- **Reset automático:** chips voltam para "Todos" ao trocar de aba
+
+### Categorias (Passo 4 — associação na EditorView)
+- **`EditorHeader` atualizado:** novo botão de categorias (`Icons.sell_outlined`) visível apenas quando há nota salva
+- **Novo componente:** `CategoriasDialog` — dialog com lista de checkboxes por categoria; mudanças só propagam ao confirmar ("Salvar")
+- **`NotaViewModel.atualizarCategorias()`:** persiste a nova lista de IDs na nota
+
+### Categorias (Passos 5–6 — gerenciamento completo)
+- **Novo componente:** `GerenciarCategoriasDialog` — hub acessível pelo chip "+"; lista existentes com botões de editar/excluir + campo inline para criar nova categoria
+- **Novo componente:** `RenomearCategoriaDialog` — igual ao dialog de criação, mas pré-preenchido; "Salvar" habilitado apenas quando o nome de fato mudou
+- **Long press nas chips:** abre bottom sheet com ações "Renomear" e "Excluir" para a categoria específica
+- **`NotaViewModel.removerCategoriaDasNotas()`:** ao excluir uma categoria, percorre todas as notas e remove o ID órfão (O(n), aceitável para operação rara)

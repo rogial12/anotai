@@ -6,7 +6,8 @@ import '../../viewmodels/nota_viewmodel.dart';
 import '../../models/nota.dart';
 import 'editor_view.dart';
 import '../components/home/empty_state.dart';
-import '../components/home/nova_categoria_dialog.dart';
+import '../components/home/gerenciar_categorias_dialog.dart';
+import '../components/home/renomear_categoria_dialog.dart';
 import '../components/home/section_header.dart';
 import '../components/home/note_tile.dart';
 import '../components/home/dock_bar.dart';
@@ -60,15 +61,108 @@ class _HomeViewState extends State<HomeView> {
     if (mounted) setState(() => _categorias = lista);
   }
 
-  Future<void> _showNovaCategoriaDialog() async {
+  void _showGerenciarCategoriasDialog() {
     final service = Provider.of<CategoriaService>(context, listen: false);
     showDialog(
       context: context,
-      builder: (_) => NovaCategoriaDialog(
+      builder: (_) => GerenciarCategoriasDialog(
+        categorias: _categorias,
         onCriar: (nome) async {
           await service.criar(nome);
           if (mounted) _carregarCategorias();
         },
+        onRenomear: (cat, novoNome) async {
+          await service.renomear(cat, novoNome);
+          if (mounted) _carregarCategorias();
+        },
+        onExcluir: (cat) async {
+          final viewModel = Provider.of<NotaViewModel>(context, listen: false);
+          await service.deletar(cat.id);
+          await viewModel.removerCategoriaDasNotas(cat.id);
+          if (mounted) {
+            setState(() => _selectedChips.remove(cat.id));
+            _carregarCategorias();
+          }
+        },
+      ),
+    );
+  }
+
+  void _showChipLongPressMenu(Categoria cat) {
+    final service = Provider.of<CategoriaService>(context, listen: false);
+    final viewModel = Provider.of<NotaViewModel>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppTheme.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Text(
+                cat.nome,
+                style: AppTheme.sectionTitle,
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('Renomear'),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                showDialog(
+                  context: context,
+                  builder: (_) => RenomearCategoriaDialog(
+                    categoria: cat,
+                    onRenomear: (novoNome) async {
+                      await service.renomear(cat, novoNome);
+                      if (mounted) _carregarCategorias();
+                    },
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: AppTheme.danger),
+              title: Text('Excluir', style: TextStyle(color: AppTheme.danger)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                showDialog(
+                  context: context,
+                  builder: (dCtx) => AlertDialog(
+                    title: const Text('Excluir categoria?'),
+                    content: Text(
+                        'A categoria "${cat.nome}" será removida de todas as notas.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(dCtx).pop(),
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.of(dCtx).pop();
+                          await service.deletar(cat.id);
+                          await viewModel.removerCategoriaDasNotas(cat.id);
+                          if (mounted) {
+                            setState(() => _selectedChips.remove(cat.id));
+                            _carregarCategorias();
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.danger),
+                        child: const Text('Excluir'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
@@ -158,7 +252,8 @@ class _HomeViewState extends State<HomeView> {
                   selectedChips: _selectedChips,
                   onChipTapped: _onChipTapped,
                   categorias: _categorias,
-                  onAddTapped: _showNovaCategoriaDialog,
+                  onAddTapped: _showGerenciarCategoriasDialog,
+                  onChipLongPressed: _showChipLongPressMenu,
                 ),
 
               // Conteúdo: estado vazio ou lista de notas
