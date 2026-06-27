@@ -196,4 +196,12 @@ class NotaViewModel extends ChangeNotifier {
     await _favoriteService.toggleFavorita(nota);
     notifyListeners();
   }
+
+  // Atualiza a lista de categorias da nota e persiste.
+  // Chamado pelo dialog de categorias na EditorView.
+  Future<void> atualizarCategorias(Nota nota, List<String> ids) async {
+    nota.categoriaIds = ids;
+    await _repository.salvar(nota);
+    notifyListeners();
+  }
 }

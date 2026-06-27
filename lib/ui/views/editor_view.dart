@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
+import '../../models/nota.dart';
+import '../../services/categoria_service.dart';
 import '../../viewmodels/nota_viewmodel.dart';
+import '../components/editor/categorias_dialog.dart';
 import '../components/editor/editor_header.dart';
 import '../styles/app_theme.dart';
 import '../utils/formatters.dart';
@@ -152,6 +155,22 @@ class _EditorViewState extends State<EditorView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Carrega categorias e abre o dialog. Usa this.context após mounted check
+  // para evitar uso de BuildContext capturado através de async gap.
+  Future<void> _showCategoriasDialog(NotaViewModel viewModel, Nota nota) async {
+    final categoriaService = Provider.of<CategoriaService>(context, listen: false);
+    final categorias = await categoriaService.buscarTodas();
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => CategoriasDialog(
+        nota: nota,
+        categorias: categorias,
+        onSalvar: (ids) => viewModel.atualizarCategorias(nota, ids),
       ),
     );
   }
@@ -321,7 +340,7 @@ class _EditorViewState extends State<EditorView> {
                   }
                 },
                 onCategoriaTapped: notaEmEdicao != null ? () {
-                  // Passo 4b: dialog de categorias da nota
+                  _showCategoriasDialog(viewModel, notaEmEdicao);
                 } : null,
                 menuItems: _buildContextMenuItems(),
               ),
