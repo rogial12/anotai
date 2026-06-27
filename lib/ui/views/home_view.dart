@@ -44,6 +44,18 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
+  // Aplica filtro AND das chips selecionadas sobre uma lista de notas.
+  // "todos" desativa o filtro. Chips múltiplos exigem que a nota satisfaça todos.
+  List<Nota> _filtrarPorChips(List<Nota> notas) {
+    if (_selectedChips.contains('todos')) return notas;
+    return notas.where((nota) {
+      return _selectedChips.every((chipId) {
+        if (chipId == 'favoritas') return nota.isFavorita;
+        return nota.categoriaIds.contains(chipId);
+      });
+    }).toList();
+  }
+
   void _onChipTapped(String chipId) {
     setState(() {
       if (chipId == 'todos') {
@@ -74,10 +86,10 @@ class _HomeViewState extends State<HomeView> {
           String tituloSecao;
 
           if (_selectedTabIndex == 0) {
-            notasParaExibir = viewModel.notas;
+            notasParaExibir = _filtrarPorChips(viewModel.notas);
             tituloSecao = 'Anotações';
           } else if (_selectedTabIndex == 1) {
-            notasParaExibir = viewModel.arquivadas;
+            notasParaExibir = _filtrarPorChips(viewModel.arquivadas);
             tituloSecao = 'Arquivo';
           } else {
             notasParaExibir = viewModel.lixeira;
