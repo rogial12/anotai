@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../styles/app_theme.dart';
 
-// Header da EditorView: botão voltar, título da nota, favorita, opções, salvar.
+// Header da EditorView: botão voltar, título da nota, favorita, categorias, opções.
 // Widget burro — não conhece o ViewModel. Recebe estado e dispara callbacks.
 class EditorHeader extends StatelessWidget {
   final String title;       // título salvo da nota, ou '' quando ainda sem título
   final bool isFavorita;
   final VoidCallback onBack;
   final VoidCallback onToggleFavorita;
+  final VoidCallback? onCategoriaTapped; // null = placeholder sem ação
   final List<PopupMenuEntry<String>> menuItems;
 
   const EditorHeader({
@@ -17,6 +18,7 @@ class EditorHeader extends StatelessWidget {
     required this.onBack,
     required this.onToggleFavorita,
     required this.menuItems,
+    this.onCategoriaTapped,
   });
 
   @override
@@ -66,6 +68,15 @@ class EditorHeader extends StatelessWidget {
               tooltip: isFavorita
                   ? 'Remover de favoritos'
                   : 'Adicionar aos favoritos',
+            ),
+
+          // Botão de categorias (só quando há nota salva)
+          if (hasTitle)
+            IconButton(
+              icon: const Icon(Icons.sell_outlined),
+              color: AppTheme.faint,
+              onPressed: onCategoriaTapped,
+              tooltip: 'Categorias',
             ),
 
           // Menu de opções

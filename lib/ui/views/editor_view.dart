@@ -320,6 +320,9 @@ class _EditorViewState extends State<EditorView> {
                     await viewModel.toggleFavorita(notaEmEdicao);
                   }
                 },
+                onCategoriaTapped: notaEmEdicao != null ? () {
+                  // Passo 4b: dialog de categorias da nota
+                } : null,
                 menuItems: _buildContextMenuItems(),
               ),
               Expanded(
